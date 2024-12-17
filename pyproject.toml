@@ -1,0 +1,23 @@
+[project]
+name = "momics"
+version = "0.0.1"
+license = { file = "LICENSE.txt" }
+description = "Utilities for metagoflow and marine omics"
+maintainers = [
+    { name = "FAIR-Ease", email = "dpalecek@ualg.pt" },
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.23.5",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-timeout",
+]
+doc = [
+    "sphinx>=5.0.0,<8.0.0",
+    "matplotlib>=3.5",
+]
