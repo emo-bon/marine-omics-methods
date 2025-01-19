@@ -29,7 +29,7 @@ def load_parquet_files(folder):
     # Loop through the folder and load each .parquet file
     for file_name in os.listdir(folder):
         if file_name.endswith(".parquet"):
-            file_path = os.path.join("parquet_files", file_name)
+            file_path = os.path.join(folder, file_name)
             # Load the parquet file into a DataFrame
             df = pd.read_parquet(file_path)
             # Use the file name without extension as the dictionary key

@@ -3,4 +3,5 @@ import importlib as _importlib
 
 submoduless = [
     'loader',
+    'diversity',
 ]
