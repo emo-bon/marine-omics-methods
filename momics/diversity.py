@@ -52,15 +52,18 @@ def calculate_alpha_diversity(df, factors):
 # alpha diversity
 def alpha_diversity_parametrized(table_list, table_name, metadata):
     df_alpha_input = alpha_input(table_list, table_name).T.sort_values(by="ref_code")
-    df_alpha_input = pd.merge(df_alpha_input, metadata, left_index=True, right_on='ref_code')
+    df_alpha_input = pd.merge(
+        df_alpha_input, metadata, left_index=True, right_on="ref_code"
+    )
     alpha = calculate_alpha_diversity(df_alpha_input, metadata)
     return alpha
 
 
 def beta_diversity_parametrized(df, taxon, metric="braycurtis"):
-    df_beta_input = diversity_input(df, kind='beta', taxon=taxon)
+    df_beta_input = diversity_input(df, kind="beta", taxon=taxon)
     beta = beta_diversity(metric, df_beta_input)
     return beta
+
 
 # version with merging metadata
 # def beta_diversity_parametrized(df, metadata):
@@ -76,7 +79,7 @@ def beta_diversity_parametrized(df, taxon, metric="braycurtis"):
 
 # helper functions
 # I think this is only useful for beta, not alpha diversity
-def diversity_input(df, kind='alpha', taxon="ncbi_tax_id"):
+def diversity_input(df, kind="alpha", taxon="ncbi_tax_id"):
     """
     Prepare input for diversity analysis.
 
@@ -98,7 +101,7 @@ def diversity_input(df, kind='alpha', taxon="ncbi_tax_id"):
     )
 
     # Normalize rows
-    if kind == 'beta':
+    if kind == "beta":
         out = out.div(out.sum(axis=1), axis=0)
 
     assert df.ncbi_tax_id.nunique(), out.shape[1]
@@ -116,24 +119,27 @@ def get_key_column(table_name):
         return "entry"
     else:
         raise ValueError(f"Unknown table: {table_name}")
-    
+
 
 def alpha_input(table_list, table_name):
     key_column = get_key_column(table_name)
     print("Key column:", key_column)
 
     # select distinct ref_codes from the dataframe
-    ref_codes = table_list[table_name]['ref_code'].unique()
-    print('length of the ref_codes:', len(ref_codes))
-    out = pd.pivot_table(table_list[table_name],
-                         values='abundance',
-                         index=[key_column],
-                         columns=['ref_code'],
-                         aggfunc='sum',
-                         fill_value=0,
-                         )
-    print('table shape:', out.shape)
+    ref_codes = table_list[table_name]["ref_code"].unique()
+    print("length of the ref_codes:", len(ref_codes))
+    out = pd.pivot_table(
+        table_list[table_name],
+        values="abundance",
+        index=[key_column],
+        columns=["ref_code"],
+        aggfunc="sum",
+        fill_value=0,
+    )
+    print("table shape:", out.shape)
     return out
+
+
 # Example usage
 # alpha_input = diversity_input(df, king='alpha')
 # beta_input = diversity_input(df, king='beta')

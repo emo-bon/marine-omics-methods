@@ -26,7 +26,17 @@ def create_widgets(cat_columns, num_columns, styles):
         description="Select a table for beta diversity analysis",
     )
 
-    boptions = ["ncbi_tax_id", "superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species"]  # Options for table selection
+    boptions = [
+        "ncbi_tax_id",
+        "superkingdom",
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "species",
+    ]  # Options for table selection
     select_taxon = pn.widgets.Select(
         name="Taxon",
         value=boptions[0],
@@ -73,12 +83,11 @@ def create_indicators():
     used_gb, total_gb = memory_load()
     indicators = pn.FlexBox(
         pn.indicators.Progress(
-            name='Ram usage',
-            value=int(used_gb / total_gb * 100),
-            width=200
+            name="Ram usage", value=int(used_gb / total_gb * 100), width=200
         ),
         pn.indicators.Number(
-            value=used_gb, name="RAM usage [GB]",
+            value=used_gb,
+            name="RAM usage [GB]",
             format="{value:,.1f}",
         ),
     )

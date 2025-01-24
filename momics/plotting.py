@@ -15,15 +15,17 @@ from .diversity import (
 # Plot the PCoA with optional coloring
 # TODO: color_by does not work for categorical data
 def plot_pcoa_black(pcoa_df, color_by=None):
-    
+
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
 
     if color_by is not None:
         scatter = plt.scatter(
-            pcoa_df["PC1"], pcoa_df["PC2"],
+            pcoa_df["PC1"],
+            pcoa_df["PC2"],
             c=pcoa_df[color_by],
-            cmap="RdYlGn", edgecolor="k"
+            cmap="RdYlGn",
+            edgecolor="k",
         )
         # plt.colorbar(scatter, label=color_by.name)
         plt.colorbar(scatter, label=color_by)
@@ -42,14 +44,14 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None):
     alpha_df = alpha_df.sort_values(by=factor)
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
-    
+
     sns.barplot(
         data=alpha_df,
-        x='ref_code',
-        y='Shannon',
+        x="ref_code",
+        y="Shannon",
         hue=factor,
         palette="coolwarm",
-        )
+    )
 
     ax.set_title(f"Shannon Index Grouped by {factor}")
     ax.set_xlabel("Sample")
@@ -65,22 +67,23 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None):
 def mpl_average_per_factor(df: pd.DataFrame, factor: str = None):
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
-    
+
     sns.barplot(
         data=df,
         x=factor,
-        y='Shannon',
+        y="Shannon",
         hue=factor,
         capsize=0.1,
         palette="coolwarm",
-        )
-    
+    )
+
     ax.set_title(f"Average Shannon Index Grouped by {factor}")
     ax.set_xlabel(factor)
     ax.set_ylabel("Average Shannon Index")
     plt.tight_layout()
     plt.close(plot)
     return plot
+
 
 ##################
 # Plot for panel #
@@ -90,9 +93,9 @@ def alpha_plot(table_list, table_name, factor, metadata):
     alpha = alpha_diversity_parametrized(table_list, table_name, metadata)
     fig = pn.pane.Matplotlib(
         mpl_alpha_diversity(alpha, factor=factor),
-                            sizing_mode="stretch_both",
-                            name="Alpha div",
-                            )
+        sizing_mode="stretch_both",
+        name="Alpha div",
+    )
     return fig
 
 
@@ -102,28 +105,28 @@ def av_alpha_plot(table_list, table_name, factor, metadata):
         mpl_average_per_factor(alpha, factor=factor),
         sizing_mode="stretch_both",
         name="AV Alpha div",
-        )
+    )
     return fig
 
 
 def beta_plot(table_list, table_name, taxon: str = "ncbi_tax_id"):
-    beta = beta_diversity_parametrized(table_list[table_name],
-                                       taxon=taxon,
-                                       metric="braycurtis")
+    beta = beta_diversity_parametrized(
+        table_list[table_name], taxon=taxon, metric="braycurtis"
+    )
 
     fig = pn.pane.Matplotlib(
         mpl_plot_heatmap(beta.to_data_frame(), taxon=taxon),
-                         sizing_mode="stretch_both",
-                         name="Beta div",
-                         )
+        sizing_mode="stretch_both",
+        name="Beta div",
+    )
     return fig
 
 
 def beta_plot_pc(table_list, metadata, table_name, factor, taxon: str = "ncbi_tax_id"):
-    beta = beta_diversity_parametrized(table_list[table_name],
-                                       taxon=taxon,
-                                       metric="braycurtis")
-    pcoa_result = pcoa(beta, method='eigh', number_of_dimensions=3)
+    beta = beta_diversity_parametrized(
+        table_list[table_name], taxon=taxon, metric="braycurtis"
+    )
+    pcoa_result = pcoa(beta, method="eigh", number_of_dimensions=3)
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,
@@ -139,7 +142,7 @@ def beta_plot_pc(table_list, metadata, table_name, factor, taxon: str = "ncbi_ta
         plot_pcoa_black(pcoa_df, color_by=factor),
         sizing_mode="stretch_both",
         name="Beta PCoA",
-        )
+    )
     return fig
 
 
