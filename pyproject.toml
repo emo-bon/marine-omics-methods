@@ -26,6 +26,6 @@ test = [
     "tox",
 ]
 doc = [
-    "sphinx>=5.0.0,<8.0.0",
+    "sphinx>=5.0.0,<9.0.0",
     "matplotlib>=3.5",
 ]
