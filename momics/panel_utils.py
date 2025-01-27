@@ -1,8 +1,26 @@
 import panel as pn
+from typing import List, Tuple
+
 from .utils import memory_load
 
 
-def create_widgets(cat_columns, num_columns, styles):
+def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> Tuple[
+    pn.widgets.Select,
+    pn.widgets.Select,
+    pn.widgets.Select,
+    pn.widgets.Select,
+    pn.widgets.Select,
+]:
+    """Creates selection widgets for alpha and beta diversity analysis.
+
+    Args:
+        cat_columns (List[str]): A list of categorical column names for alpha diversity.
+        num_columns (List[str]): A list of numerical column names for beta diversity.
+
+    Returns:
+        Tuple[pn.widgets.Select, pn.widgets.Select, pn.widgets.Select, pn.widgets.Select, pn.widgets.Select]:
+        A tuple containing selection widgets for alpha and beta diversity analysis.
+    """
     select_table_alpha = pn.widgets.Select(
         name="Source table alphas",
         value="go",
@@ -10,7 +28,6 @@ def create_widgets(cat_columns, num_columns, styles):
         description="Select a table for alpha diversity analysis",
     )
 
-    # TODO: probably not all of these categories make sense
     select_cat_factor = pn.widgets.Select(
         name="Factor alpha",
         value=cat_columns[0],
@@ -18,7 +35,6 @@ def create_widgets(cat_columns, num_columns, styles):
         description="Categorical columns to compare alpha diversities",
     )
 
-    # For Beta diversity
     select_table_beta = pn.widgets.Select(
         name="Source table beta",
         value="SSU",
@@ -36,7 +52,7 @@ def create_widgets(cat_columns, num_columns, styles):
         "family",
         "genus",
         "species",
-    ]  # Options for table selection
+    ]
     select_taxon = pn.widgets.Select(
         name="Taxon",
         value=boptions[0],
@@ -51,35 +67,22 @@ def create_widgets(cat_columns, num_columns, styles):
         description="Factor to visualize beta PCoA towards",
     )
 
-    # indicators
-    # used_gb, total_gb = memory_load()
-    # indicators = pn.FlexBox(
-    #     pn.indicators.Progress(
-    #         name='Ram usage',
-    #         value=int(used_gb / total_gb * 100),
-    #         width=200
-    #     ),
-    #     pn.indicators.Number(
-    #         value=used_gb, name="RAM usage [GB]",
-    #         format="{value:,.1f}",
-    #         styles=styles
-    #     ),
-    #     pn.indicators.Number(
-    #         value=10, name="Not implemented", format="{value:,.0f}", styles=styles
-    #     ),
-    # )
     ret = (
         select_table_alpha,
         select_cat_factor,
         select_table_beta,
         select_taxon,
         select_factor_beta,
-        # indicators,
     )
     return ret
 
 
-def create_indicators():
+def create_indicators() -> pn.FlexBox:
+    """Creates indicators for RAM usage.
+
+    Returns:
+        pn.FlexBox: A FlexBox containing RAM usage indicators.
+    """
     used_gb, total_gb = memory_load()
     indicators = pn.FlexBox(
         pn.indicators.Progress(

@@ -2,20 +2,27 @@ import panel as pn
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from skbio.diversity import beta_diversity
+from typing import List, Tuple, Dict
+
 from skbio.stats.ordination import pcoa
 
 from .diversity import (
-    diversity_input,
     alpha_diversity_parametrized,
     beta_diversity_parametrized,
 )
 
 
-# Plot the PCoA with optional coloring
-# TODO: color_by does not work for categorical data
-def plot_pcoa_black(pcoa_df, color_by=None):
+def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
+    """
+    Plots a PCoA plot with optional coloring.
 
+    Args:
+        pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
+        color_by (str, optional): The column name to color the points by. Defaults to None.
+
+    Returns:
+        plt.Figure: The PCoA plot.
+    """
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
 
@@ -27,7 +34,6 @@ def plot_pcoa_black(pcoa_df, color_by=None):
             cmap="RdYlGn",
             edgecolor="k",
         )
-        # plt.colorbar(scatter, label=color_by.name)
         plt.colorbar(scatter, label=color_by)
     else:
         plt.scatter(pcoa_df["PC1"], pcoa_df["PC2"], color="black")
@@ -40,7 +46,17 @@ def plot_pcoa_black(pcoa_df, color_by=None):
     return plot
 
 
-def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None):
+def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figure:
+    """
+    Plots the Shannon index grouped by a factor.
+
+    Args:
+        alpha_df (pd.DataFrame): A DataFrame containing alpha diversity results.
+        factor (str, optional): The column name to group by. Defaults to None.
+
+    Returns:
+        plt.Figure: The Shannon index plot.
+    """
     alpha_df = alpha_df.sort_values(by=factor)
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
@@ -57,14 +73,23 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None):
     ax.set_xlabel("Sample")
     ax.set_ylabel("Shannon Index")
 
-    # TODO: check length for conditional rotation
     plt.xticks(rotation=90)
     plt.tight_layout()
     plt.close(plot)
     return plot
 
 
-def mpl_average_per_factor(df: pd.DataFrame, factor: str = None):
+def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
+    """
+    Plots the average Shannon index grouped by a factor.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing alpha diversity results.
+        factor (str, optional): The column name to group by. Defaults to None.
+
+    Returns:
+        plt.Figure: The average Shannon index plot.
+    """
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
 
@@ -79,7 +104,8 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None):
 
     ax.set_title(f"Average Shannon Index Grouped by {factor}")
     ax.set_xlabel(factor)
-    ax.set_ylabel("Average Shannon Index")
+    ax.set_ylabel("Shannon Index")
+
     plt.tight_layout()
     plt.close(plot)
     return plot
@@ -89,8 +115,25 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None):
 # Plot for panel #
 ##################
 # Alpha diversity
-def alpha_plot(table_list, table_name, factor, metadata):
-    alpha = alpha_diversity_parametrized(table_list, table_name, metadata)
+def alpha_plot(
+    tables_dict: Dict[str, pd.DataFrame],
+    table_name: str,
+    factor: str,
+    metadata: pd.DataFrame,
+) -> pn.pane.Matplotlib:
+    """
+    Creates an alpha diversity plot.
+
+    Args:
+        tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
+        table_name (str): The name of the table to process.
+        factor (str): The column name to group by.
+        metadata (pd.DataFrame): A DataFrame containing metadata.
+
+    Returns:
+        pn.pane.Matplotlib: A Matplotlib pane containing the alpha diversity plot.
+    """
+    alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
     fig = pn.pane.Matplotlib(
         mpl_alpha_diversity(alpha, factor=factor),
         sizing_mode="stretch_both",
@@ -99,8 +142,25 @@ def alpha_plot(table_list, table_name, factor, metadata):
     return fig
 
 
-def av_alpha_plot(table_list, table_name, factor, metadata):
-    alpha = alpha_diversity_parametrized(table_list, table_name, metadata)
+def av_alpha_plot(
+    tables_dict: Dict[str, pd.DataFrame],
+    table_name: str,
+    factor: str,
+    metadata: pd.DataFrame,
+) -> pn.pane.Matplotlib:
+    """
+    Creates an average alpha diversity plot.
+
+    Args:
+        tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
+        table_name (str): The name of the table to process.
+        factor (str): The column name to group by.
+        metadata (pd.DataFrame): A DataFrame containing metadata.
+
+    Returns:
+        pn.pane.Matplotlib: A Matplotlib pane containing the average alpha diversity plot.
+    """
+    alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
     fig = pn.pane.Matplotlib(
         mpl_average_per_factor(alpha, factor=factor),
         sizing_mode="stretch_both",
@@ -109,9 +169,22 @@ def av_alpha_plot(table_list, table_name, factor, metadata):
     return fig
 
 
-def beta_plot(table_list, table_name, taxon: str = "ncbi_tax_id"):
+def beta_plot(
+    tables_dict: Dict[str, pd.DataFrame], table_name: str, taxon: str = "ncbi_tax_id"
+) -> pn.pane.Matplotlib:
+    """
+    Creates a beta diversity heatmap plot.
+
+    Args:
+        tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
+        table_name (str): The name of the table to process.
+        taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
+
+    Returns:
+        pn.pane.Matplotlib: A Matplotlib pane containing the beta diversity heatmap plot.
+    """
     beta = beta_diversity_parametrized(
-        table_list[table_name], taxon=taxon, metric="braycurtis"
+        tables_dict[table_name], taxon=taxon, metric="braycurtis"
     )
 
     fig = pn.pane.Matplotlib(
@@ -122,9 +195,28 @@ def beta_plot(table_list, table_name, taxon: str = "ncbi_tax_id"):
     return fig
 
 
-def beta_plot_pc(table_list, metadata, table_name, factor, taxon: str = "ncbi_tax_id"):
+def beta_plot_pc(
+    tables_dict: Dict[str, pd.DataFrame],
+    metadata: pd.DataFrame,
+    table_name: str,
+    factor: str,
+    taxon: str = "ncbi_tax_id",
+) -> pn.pane.Matplotlib:
+    """
+    Creates a beta diversity PCoA plot.
+
+    Args:
+        tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
+        metadata (pd.DataFrame): A DataFrame containing metadata.
+        table_name (str): The name of the table to process.
+        factor (str): The column name to color the points by.
+        taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
+
+    Returns:
+        pn.pane.Matplotlib: A Matplotlib pane containing the beta diversity PCoA plot.
+    """
     beta = beta_diversity_parametrized(
-        table_list[table_name], taxon=taxon, metric="braycurtis"
+        tables_dict[table_name], taxon=taxon, metric="braycurtis"
     )
     pcoa_result = pcoa(beta, method="eigh", number_of_dimensions=3)
     pcoa_df = pd.merge(
@@ -135,9 +227,6 @@ def beta_plot_pc(table_list, metadata, table_name, factor, taxon: str = "ncbi_ta
         how="inner",
     )
 
-    # df_beta = pd.merge(beta.to_data_frame(),
-    #                    table_list["metadata"],
-    #                    left_index=True, right_on='ref_code')
     fig = pn.pane.Matplotlib(
         plot_pcoa_black(pcoa_df, color_by=factor),
         sizing_mode="stretch_both",
@@ -146,7 +235,17 @@ def beta_plot_pc(table_list, metadata, table_name, factor, taxon: str = "ncbi_ta
     return fig
 
 
-def mpl_plot_heatmap(df, taxon):
+def mpl_plot_heatmap(df: pd.DataFrame, taxon: str) -> plt.Figure:
+    """
+    Creates a heatmap plot for beta diversity.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing beta diversity distances.
+        taxon (str): The taxon level for beta diversity calculation.
+
+    Returns:
+        plt.Figure: The heatmap plot.
+    """
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
 

@@ -1,11 +1,21 @@
 import pandas as pd
 import numpy as np
+from typing import List, Dict
+
 from skbio.diversity import beta_diversity
 from skbio.stats.ordination import pcoa
 
 
-# this should go to stats, or use skbio method
-def shannon_index(row):
+def shannon_index(row: pd.Series) -> float:
+    """
+    Calculates the Shannon index for a given row of data.
+
+    Args:
+        row (pd.Series): A row of data containing species abundances.
+
+    Returns:
+        float: The Shannon index value.
+    """
     row = pd.to_numeric(row, errors="coerce")
     total_abundance = row.sum()
     if total_abundance == 0:
@@ -17,14 +27,33 @@ def shannon_index(row):
     return multi.sum()  # Shannon entropy
 
 
-def calculate_shannon_index(df):
+def calculate_shannon_index(df: pd.DataFrame) -> pd.Series:
+    """
+    Applies the Shannon index calculation to each row of a DataFrame.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing species abundances.
+
+    Returns:
+        pd.Series: A Series containing the Shannon index for each row.
+    """
     return df.apply(shannon_index, axis=1)
 
 
 #######################
 # diversity functions #
 #######################
-def calculate_alpha_diversity(df, factors):
+def calculate_alpha_diversity(df: pd.DataFrame, factors: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculates the alpha diversity (Shannon index) for a DataFrame.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing species abundances.
+        factors (pd.DataFrame): A DataFrame containing additional factors to merge.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the Shannon index and additional factors.
+    """
     # Select columns that start with the appropriate prefix
     numeric_columns = [
         col
@@ -50,7 +79,20 @@ def calculate_alpha_diversity(df, factors):
 
 
 # alpha diversity
-def alpha_diversity_parametrized(table_list, table_name, metadata):
+def alpha_diversity_parametrized(
+    table_list: List[pd.DataFrame], table_name: str, metadata: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Calculates the alpha diversity for a list of tables and merges with metadata.
+
+    Args:
+        table_list (List[pd.DataFrame]): A list of DataFrames containing species abundances.
+        table_name (str): The name of the table.
+        metadata (pd.DataFrame): A DataFrame containing metadata.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the alpha diversity and metadata.
+    """
     df_alpha_input = alpha_input(table_list, table_name).T.sort_values(by="ref_code")
     df_alpha_input = pd.merge(
         df_alpha_input, metadata, left_index=True, right_on="ref_code"
@@ -59,7 +101,20 @@ def alpha_diversity_parametrized(table_list, table_name, metadata):
     return alpha
 
 
-def beta_diversity_parametrized(df, taxon, metric="braycurtis"):
+def beta_diversity_parametrized(
+    df: pd.DataFrame, taxon: str, metric: str = "braycurtis"
+) -> pd.DataFrame:
+    """
+    Calculates the beta diversity for a DataFrame.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing species abundances.
+        taxon (str): The taxon to use for the beta diversity calculation.
+        metric (str, optional): The distance metric to use. Defaults to "braycurtis".
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the beta diversity distances.
+    """
     df_beta_input = diversity_input(df, kind="beta", taxon=taxon)
     beta = beta_diversity(metric, df_beta_input)
     return beta
@@ -79,7 +134,9 @@ def beta_diversity_parametrized(df, taxon, metric="braycurtis"):
 
 # helper functions
 # I think this is only useful for beta, not alpha diversity
-def diversity_input(df, kind="alpha", taxon="ncbi_tax_id"):
+def diversity_input(
+    df: pd.DataFrame, kind: str = "alpha", taxon: str = "ncbi_tax_id"
+) -> pd.DataFrame:
     """
     Prepare input for diversity analysis.
 
@@ -110,7 +167,18 @@ def diversity_input(df, kind="alpha", taxon="ncbi_tax_id"):
 
 # Function to get the appropriate column based on the selected table
 # Example tables: ['go', 'go_slim', 'ips', 'ko', 'pfam']
-def get_key_column(table_name):
+def get_key_column(table_name: str) -> str:
+    """Returns the key column name based on the table name.
+
+    Args:
+        table_name (str): The name of the table.
+
+    Returns:
+        str: The key column name.
+
+    Raises:
+        ValueError: If the table name is unknown.
+    """
     if table_name in ["go", "go_slim"]:
         return "id"
     elif table_name == "ips":
@@ -121,15 +189,25 @@ def get_key_column(table_name):
         raise ValueError(f"Unknown table: {table_name}")
 
 
-def alpha_input(table_list, table_name):
+def alpha_input(tables_dict: Dict[str, pd.DataFrame], table_name: str) -> pd.DataFrame:
+    """
+    Prepares the input data for alpha diversity calculation.
+
+    Args:
+        tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
+        table_name (str): The name of the table to process.
+
+    Returns:
+        pd.DataFrame: A pivot table with species abundances indexed by the key column and ref_code as columns.
+    """
     key_column = get_key_column(table_name)
     print("Key column:", key_column)
 
     # select distinct ref_codes from the dataframe
-    ref_codes = table_list[table_name]["ref_code"].unique()
+    ref_codes = tables_dict[table_name]["ref_code"].unique()
     print("length of the ref_codes:", len(ref_codes))
     out = pd.pivot_table(
-        table_list[table_name],
+        tables_dict[table_name],
         values="abundance",
         index=[key_column],
         columns=["ref_code"],

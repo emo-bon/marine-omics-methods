@@ -1,26 +1,24 @@
 import os
 import pandas as pd
+from typing import Dict
 
 
-def load_parquet_files(folder):
+def load_parquets(folder: str) -> Dict[str, pd.DataFrame]:
     """
-    Loads all .parquet files in folder and stores them in a dictionary.
+    Loads all .parquet files in a folder and stores them in a dictionary.
+
     The keys of the dictionary are the file names without the .parquet
-    extension. If filename contains more '.' then only last part of the
-    names is included.
+    extension. If the filename contains more than one '.', only the last part
+    of the name is included.
 
-    Example: metagoflow_analyses.go_slim.parquet -> key = "go_slim"
+    Example:
+        metagoflow_analyses.go_slim.parquet -> key = "go_slim"
 
-    Parameters
-    ----------
-    folder : str
-        The path to the folder containing the .parquet files.
+    Args:
+        folder (str): The path to the folder containing the .parquet files.
 
-    Returns
-    -------
-    mgf_parquet_dfs : dict
-        A dictionary containing the data frames of the .parquet files.
-
+    Returns:
+        dict: A dictionary containing the data frames of the .parquet files.
     """
     # Create an empty dictionary to store the data frames
     # In this disctionary the data tables will be stored as pandas data frames

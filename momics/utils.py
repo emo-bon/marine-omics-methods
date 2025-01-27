@@ -10,6 +10,13 @@ import platform
 # TODO: there needs to be a yaml file to set up a folder structure, hardcoding here is not good :)
 # Question: Or should this be part of the momics package?
 def init_setup():
+    """
+    Initializes the setup environment.
+
+    This function checks if the current environment is IPython (such as Google Colab).
+    If it is, it runs the setup for IPython environments. Otherwise, it runs the setup
+    for local environments.
+    """
     # First solve if IPython
     if is_ipython():
         ## For running at GColab, the easiest is to clone and then pip install some deps
@@ -20,8 +27,14 @@ def init_setup():
 
 
 def setup_local():
-    # I do not install the package via pip install -e, I rather add the path to the package to the sys.path
-    # faster prototyping of the momics package
+    """
+    Setup the local environment.
+
+    This function adds the path to the momics package to the sys.path.
+
+    Note: I do not install the package via pip install -e, I rather add the path to the package to the sys.path
+    -> faster prototyping of the momics package
+    """
     if platform.system() == "Linux":
         print("local Linux")
         sys.path.append("/home/davidp/python_projects/marine_omics/marine-omics")
@@ -35,6 +48,11 @@ def setup_local():
 
 
 def setup_ipython():
+    """
+    Setup the IPython environment.
+
+    This function installs the momics package and other dependencies for the IPython environment.
+    """
     if "google.colab" in str(get_ipython()):
         print("Google Colab")
 
@@ -72,6 +90,12 @@ def setup_ipython():
 
 
 def is_ipython():
+    """
+    Check if the current environment is IPython.
+
+    Returns:
+        bool: True if the current environment is IPython, False otherwise.
+    """
     # This is for the case when the script is run from the Jupyter notebook
     if "ipykernel" in sys.modules:
         from IPython import get_ipython
@@ -88,6 +112,11 @@ def is_ipython():
 def memory_load():
     """
     Get the memory usage of the current process.
+
+    Returns:
+        tuple: A tuple containing:
+            - used_gb (float): The amount of memory currently used by the process in gigabytes.
+            - total_gb (float): The total amount of memory available in gigabytes.
     """
     used_gb, total_gb = (
         psutil.virtual_memory()[3] / 1000000000,
@@ -98,7 +127,11 @@ def memory_load():
 
 def memory_usage():
     """
-    Get the memory usage of all the variables in the current scope.
+    Get the memory usage of the current process.
+
+    Returns:
+        list: A list of tuples containing the names of the objects in the current environment
+            and their corresponding sizes in bytes.
     """
     # These are the usual ipython objects, including this one you are creating
     ipython_vars = ["In", "Out", "exit", "quit", "get_ipython", "ipython_vars"]
