@@ -1,5 +1,5 @@
 import panel as pn
-from .helpers import memory_load
+from .utils import memory_load
 
 
 def create_widgets(cat_columns, num_columns, styles):
