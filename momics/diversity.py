@@ -80,20 +80,20 @@ def calculate_alpha_diversity(df: pd.DataFrame, factors: pd.DataFrame) -> pd.Dat
 
 # alpha diversity
 def alpha_diversity_parametrized(
-    table_list: List[pd.DataFrame], table_name: str, metadata: pd.DataFrame
+    tables_dict: Dict[str, pd.DataFrame], table_name: str, metadata: pd.DataFrame
 ) -> pd.DataFrame:
     """
     Calculates the alpha diversity for a list of tables and merges with metadata.
 
     Args:
-        table_list (List[pd.DataFrame]): A list of DataFrames containing species abundances.
+        tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
         table_name (str): The name of the table.
         metadata (pd.DataFrame): A DataFrame containing metadata.
 
     Returns:
         pd.DataFrame: A DataFrame containing the alpha diversity and metadata.
     """
-    df_alpha_input = alpha_input(table_list, table_name).T.sort_values(by="ref_code")
+    df_alpha_input = alpha_input(tables_dict, table_name).T.sort_values(by="ref_code")
     df_alpha_input = pd.merge(
         df_alpha_input, metadata, left_index=True, right_on="ref_code"
     )

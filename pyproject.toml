@@ -8,11 +8,13 @@ maintainers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "fastparquet>=2024.11.0",
     "matplotlib>=3.5",
     "numpy>=1.23.5",
     "pandas>=1.4.0",
     "panel>=1.16.0",
     "requests>=2.26.0",
+    "scikit-bio>=0.6.3",
     "seaborn>=0.11.2",
 ]
 
@@ -21,6 +23,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-timeout",
+    "tox",
 ]
 doc = [
     "sphinx>=5.0.0,<8.0.0",
