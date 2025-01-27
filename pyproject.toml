@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
+testing = [
     "pytest",
     "pytest-cov",
     "pytest-timeout",
