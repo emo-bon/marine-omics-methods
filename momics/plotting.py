@@ -1,6 +1,7 @@
 import panel as pn
 import pandas as pd
 import seaborn as sns
+from textwrap import fill
 import matplotlib.pyplot as plt
 from typing import List, Tuple, Dict
 
@@ -59,16 +60,22 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
     """
     alpha_df = alpha_df.sort_values(by=factor)
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
-    ax = plot.add_subplot(111)
+    labels = [fill(x, 20) if isinstance(x, str) and len(x) > 30 else str(x) for x in alpha_df[factor].unique()]
 
+    ax = plot.add_subplot(111)
     sns.barplot(
         data=alpha_df,
         x="ref_code",
         y="Shannon",
         hue=factor,
         palette="coolwarm",
-    )
+        )
 
+    # check axes and find which is have legend
+    leg = ax.get_legend()
+    for t, l in zip(leg.texts, labels):
+        t.set_text(l)
+    
     ax.set_title(f"Shannon Index Grouped by {factor}")
     ax.set_xlabel("Sample")
     ax.set_ylabel("Shannon Index")
@@ -138,6 +145,7 @@ def alpha_plot(
         mpl_alpha_diversity(alpha, factor=factor),
         sizing_mode="stretch_both",
         name="Alpha div",
+        
     )
     return fig
 
