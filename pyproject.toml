@@ -8,6 +8,7 @@ maintainers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "bioblend>=1.4.0",
     "fastparquet>=2024.11.0",
     "matplotlib>=3.5",
     "numpy>=1.23.5",
