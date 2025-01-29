@@ -60,10 +60,16 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
         description="At which taxon level is beta diversity calculated",
     )
 
-    select_factor_beta = pn.widgets.Select(
+    # select_factor_beta = pn.widgets.Select(
+    #     name="Factor beta",
+    #     value=num_columns[0],
+    #     options=num_columns,
+    #     description="Factor to visualize beta PCoA towards",
+    # )
+    select_factor_beta_all = pn.widgets.Select(
         name="Factor beta",
         value=num_columns[0],
-        options=num_columns,
+        options=sorted(num_columns+cat_columns),
         description="Factor to visualize beta PCoA towards",
     )
 
@@ -72,7 +78,7 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
         select_cat_factor,
         select_table_beta,
         select_taxon,
-        select_factor_beta,
+        select_factor_beta_all,
     )
     return ret
 
