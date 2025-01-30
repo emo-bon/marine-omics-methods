@@ -120,19 +120,9 @@ def beta_diversity_parametrized(
     return beta
 
 
-# version with merging metadata
-# def beta_diversity_parametrized(df, metadata):
-#     # beta diversity
-#     df_beta_input = diversity_input(df, kind='beta', taxon="ncbi_tax_id")
-
-#     beta = beta_diversity("braycurtis", df_beta_input)
-
-#     # merge metadata
-#     df_beta = pd.merge(beta.to_data_frame(), metadata, left_index=True, right_on='ref_code')
-#     return df_beta
-
-
-# helper functions
+####################
+# helper functions #
+####################
 # I think this is only useful for beta, not alpha diversity
 def diversity_input(
     df: pd.DataFrame, kind: str = "alpha", taxon: str = "ncbi_tax_id"
@@ -166,7 +156,7 @@ def diversity_input(
 
 
 # Function to get the appropriate column based on the selected table
-# Example tables: ['go', 'go_slim', 'ips', 'ko', 'pfam']
+# Valid table names: ['go', 'go_slim', 'ips', 'ko', 'pfam']
 def get_key_column(table_name: str) -> str:
     """Returns the key column name based on the table name.
 

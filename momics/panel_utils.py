@@ -66,10 +66,11 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
     #     options=num_columns,
     #     description="Factor to visualize beta PCoA towards",
     # )
+    full_columns = sorted(num_columns + cat_columns)
     select_factor_beta_all = pn.widgets.Select(
         name="Factor beta",
-        value=num_columns[0],
-        options=sorted(num_columns+cat_columns),
+        value=full_columns[0],
+        options=full_columns,
         description="Factor to visualize beta PCoA towards",
     )
 

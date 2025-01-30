@@ -33,7 +33,7 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
         print(pcoa_df[color_by].dtype)
         # BETA created now only for numerical
         if pcoa_df[color_by].dtype == "object":
-            print('categorical')
+            print("categorical")
             sns.scatterplot(
                 data=pcoa_df,
                 x="PC1",
@@ -44,7 +44,7 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
             )
             ax = change_legend_labels(ax, labels)
         else:
-            print('numerical', pcoa_df[color_by].count(), len(pcoa_df[color_by]))
+            print("numerical", pcoa_df[color_by].count(), len(pcoa_df[color_by]))
             flag_massage = True
             perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
             scatter = plt.scatter(
@@ -56,7 +56,7 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
             )
             plt.colorbar(scatter, label=color_by)
     else:
-        print('single color')
+        print("single color")
         plt.scatter(pcoa_df["PC1"], pcoa_df["PC2"], color="black")
 
     ax.set_xlabel("PC1")
@@ -147,6 +147,7 @@ def alpha_plot(
     table_name: str,
     factor: str,
     metadata: pd.DataFrame,
+    debug: bool = False,
 ) -> pn.pane.Matplotlib:
     """
     Creates an alpha diversity plot.
@@ -161,6 +162,8 @@ def alpha_plot(
         pn.pane.Matplotlib: A Matplotlib pane containing the alpha diversity plot.
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
+    if debug:
+        print(alpha)
     fig = pn.pane.Matplotlib(
         mpl_alpha_diversity(alpha, factor=factor),
         sizing_mode="stretch_both",

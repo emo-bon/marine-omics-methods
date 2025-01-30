@@ -78,9 +78,10 @@ def test_diversity_select_widgets(sample_columns):
         "species",
     ], "The options of the fourth widget are incorrect"
 
+    full_columns = sorted(num_columns + cat_columns)
     assert (
-        widgets[4].value == num_columns[0]
-    ), f"The initial value of the fifth widget should be '{num_columns[0]}'"
+        widgets[4].value == full_columns[0]
+    ), f"The initial value of the fifth widget should be '{full_columns[0]}'"
     assert (
-        widgets[4].options == num_columns
+        widgets[4].options == full_columns
     ), "The options of the fifth widget are incorrect"
