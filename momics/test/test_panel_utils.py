@@ -1,9 +1,5 @@
 import pytest
 import panel as pn
-
-# from skbio.diversity import beta_diversity
-
-# from momics.diversity import *
 from momics.panel_utils import diversity_select_widgets
 
 
