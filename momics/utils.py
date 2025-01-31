@@ -68,7 +68,7 @@ def setup_ipython():
         # clone and install momics
         try:
             os.system("git clone https://github.com/palec87/marine-omics.git")
-            print(f"Repository cloned")
+            print(f"Repository marine-omics cloned")
         except OSError as e:
             print(f"An error occurred while cloning the repository: {e}")
 

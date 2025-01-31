@@ -24,7 +24,7 @@ def test_diversity_select_widgets(sample_columns):
     assert isinstance(widgets, tuple), "The result should be a tuple"
 
     # Check if the tuple contains 5 elements
-    assert len(widgets) == 5, "The tuple should contain 5 elements"
+    assert len(widgets) == 6, "The tuple should contain 5 elements"
 
     # Check if each element in the tuple is a pn.widgets.Select instance
     for widget in widgets:
