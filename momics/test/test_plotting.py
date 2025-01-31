@@ -271,12 +271,13 @@ def test_beta_plot():
     Tests the beta_plot function.
     """
     table_name = "sample_table"
+    norm = False
     taxon = "GO:0001"
     data = sample_tables_dict(table_name, add_abundance=True)
     data = {
         table_name: add_column(data[table_name], "ncbi_tax_id"),
     }
-    fig_pane = beta_plot(data, table_name, taxon)
+    fig_pane = beta_plot(data, table_name, norm, taxon)
 
     # Check if the result is a panel Matplotlib pane
     assert isinstance(

@@ -10,6 +10,7 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
     pn.widgets.Select,
     pn.widgets.Select,
     pn.widgets.Select,
+    pn.widgets.Checkbox,
 ]:
     """Creates selection widgets for alpha and beta diversity analysis.
 
@@ -73,6 +74,12 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
         options=full_columns,
         description="Factor to visualize beta PCoA towards",
     )
+    ## checkbox for beta matrix normalization
+    checkbox_beta_norm = pn.widgets.Checkbox(
+        name="Normalize beta matrix",
+        value=False,
+        # description="Normalize beta matrix by row sum",
+    )
 
     ret = (
         select_table_alpha,
@@ -80,6 +87,7 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
         select_table_beta,
         select_taxon,
         select_factor_beta_all,
+        checkbox_beta_norm,
     )
     return ret
 

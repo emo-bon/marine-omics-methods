@@ -200,7 +200,8 @@ def av_alpha_plot(
 
 
 def beta_plot(
-    tables_dict: Dict[str, pd.DataFrame], table_name: str, taxon: str = "ncbi_tax_id"
+    tables_dict: Dict[str, pd.DataFrame], table_name: str, norm: bool,
+    taxon: str = "ncbi_tax_id",
 ) -> pn.pane.Matplotlib:
     """
     Creates a beta diversity heatmap plot.
@@ -218,7 +219,7 @@ def beta_plot(
     )
 
     fig = pn.pane.Matplotlib(
-        mpl_plot_heatmap(beta.to_data_frame(), taxon=taxon),
+        mpl_plot_heatmap(beta.to_data_frame(), taxon=taxon, norm=norm),
         sizing_mode="stretch_both",
         name="Beta div",
     )
@@ -265,7 +266,7 @@ def beta_plot_pc(
     return fig
 
 
-def mpl_plot_heatmap(df: pd.DataFrame, taxon: str) -> plt.Figure:
+def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:
     """
     Creates a heatmap plot for beta diversity.
 
@@ -278,8 +279,10 @@ def mpl_plot_heatmap(df: pd.DataFrame, taxon: str) -> plt.Figure:
     """
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     ax = plot.add_subplot(111)
-
-    sns.heatmap(df, cmap="viridis")
+    if norm:
+        sns.heatmap(df, vmin=0, vmax=1.0, cmap="viridis")
+    else:
+        sns.heatmap(df, cmap="viridis")
     plt.title(f"Beta diversity for {taxon}")
     plt.tight_layout()
     plt.close(plot)
