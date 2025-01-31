@@ -27,10 +27,15 @@ def test_diversity_select_widgets(sample_columns):
     assert len(widgets) == 6, "The tuple should contain 5 elements"
 
     # Check if each element in the tuple is a pn.widgets.Select instance
-    for widget in widgets:
+    for widget in widgets[:-1]:
         assert isinstance(
             widget, pn.widgets.Select
         ), f"Expected pn.widgets.Select, but got {type(widget)}"
+
+    # Check if the last element in the tuple is a pn.widgets.Checkbox instance
+    assert isinstance(
+        widgets[-1], pn.widgets.Checkbox
+    ), f"Expected pn.widgets.Checkbox, but got {type(widgets[-1])}"
 
     # Check if the widgets have the correct initial values and options
     assert (
