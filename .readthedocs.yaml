@@ -10,6 +10,10 @@ build:
   tools:
     python: "3"
 
+  # install optional dependencies from toml file
+  pip install .[docs]
+
+
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
   configuration: docs/conf.py
