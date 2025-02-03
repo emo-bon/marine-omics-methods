@@ -20,7 +20,7 @@ release = '0.0.1'
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx_autoapi'
+    'sphinx.ext.autoapi'
 ]
 # extensions.append('autoapi.extension')
 autoapi_dirs = ['../momics']
