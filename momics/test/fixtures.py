@@ -8,7 +8,7 @@ def sample_tables_dict(name="sample_table", add_abundance=False):
     These need to start with 'GO', 'IPR', 'K', 'PF', which are hardcoded in
     the calculate_alpha_diversity function for instance.
     TODO: that is probably not that great, should raise warning for other columns
-        Put in a separate test?
+    Put in a separate test?
     """
     data = {
         "ref_code": ["sample1", "sample2", "sample3"],
