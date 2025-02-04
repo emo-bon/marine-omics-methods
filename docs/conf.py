@@ -19,19 +19,19 @@ release = '0.0.1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'autoapi.extension',
+    # 'autoapi.extension',
+    'sphinx.ext.autodoc',
     "sphinx.ext.napoleon",
 ]
-# extensions.append('autoapi.extension')
-autoapi_dirs = ['../momics']
+# autoapi_dirs = ['../momics']
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-# autodoc_default_options = {
-#     "members": True, 
-#     "undoc-members": True,
-#     "private-members": True}
+autodoc_default_options = {
+    "members": True, 
+    "undoc-members": True,
+    "private-members": True}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

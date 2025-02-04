@@ -7,6 +7,11 @@ Marine omics (MOmics) documentation
 
    installation
 
+.. toctree::
+   :maxdepth: 4
+
+   api
+
 
 
 
