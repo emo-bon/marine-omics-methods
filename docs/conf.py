@@ -19,10 +19,10 @@ release = '0.0.1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    # 'autoapi.extension',
+    'autoapi.extension',
 ]
 # extensions.append('autoapi.extension')
-# autoapi_dirs = ['../momics']
+autoapi_dirs = ['../momics']
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
