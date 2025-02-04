@@ -249,7 +249,8 @@ def beta_plot_pc(
     beta = beta_diversity_parametrized(
         tables_dict[table_name], taxon=taxon, metric="braycurtis"
     )
-    pcoa_result = pcoa(beta, method="eigh", number_of_dimensions=3)
+    pcoa_result = pcoa(beta, method="eigh") # , number_of_dimensions=3)
+    explained_variance = pcoa_result.proportion_explained[:2].sum() * 100
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,
@@ -258,12 +259,13 @@ def beta_plot_pc(
         how="inner",
     )
 
-    fig = pn.pane.Matplotlib(
-        plot_pcoa_black(pcoa_df, color_by=factor),
-        sizing_mode="stretch_both",
-        name="Beta PCoA",
-    )
-    return fig
+    # fig = pn.pane.Matplotlib(
+    #     plot_pcoa_black(pcoa_df, color_by=factor),
+    #     sizing_mode="stretch_both",
+    #     name="Beta PCoA",
+    # )
+    # return fig, explained_variance
+    return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
 
 
 def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:
