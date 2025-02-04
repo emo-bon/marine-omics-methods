@@ -3,7 +3,7 @@ import pandas as pd
 
 # import fastparquet
 
-from momics.loader.load_parquets import load_parquets
+from momics.loader.parquets import load_parquets
 
 
 @pytest.fixture
