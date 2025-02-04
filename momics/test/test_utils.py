@@ -1,6 +1,10 @@
 import pytest
 from momics.utils import *
 
+"""
+Testing utilities for resource monitoring, mainly memory usage and RAM load.
+"""
+
 
 # def test_memory_load(monkeypatch):
 #     """

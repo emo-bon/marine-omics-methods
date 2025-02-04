@@ -162,6 +162,3 @@ cython_debug/
 #.idea/
 
 .history/
-
-# docs
-_build/
