@@ -1,3 +1,26 @@
+"""
+This module contains functions for plotting alpha and beta diversity results.
+
+Functions:
+- plot_pcoa_black: Plots a PCoA plot with optional coloring.
+- mpl_alpha_diversity: Plots the Shannon index grouped by a factor.
+- mpl_average_per_factor: Plots the average Shannon index grouped by a factor.
+- alpha_plot: Creates an alpha diversity plot.
+- av_alpha_plot: Creates an average alpha diversity plot.
+- beta_plot: Creates a beta diversity heatmap plot.
+- beta_plot_pc: Creates a beta diversity PCoA plot.
+- mpl_plot_heatmap: Creates a heatmap plot for beta diversity.
+- fold_legend_labels_from_series: Folds a list of labels to a maximum length from a Series.
+- change_legend_labels: Changes the labels of a legend on a given matplotlib axis.
+- cut_xaxis_labels: Changes the x-tick labels by cutting them short.
+
+Constants:
+- PLOT_FACE_COLOR: The face color for the plot.
+
+TODO: returns should be plt.figure and not pn.pane.Matplotlib, as already
+implemented for beta_plot_pc() function.
+"""
+
 import panel as pn
 import pandas as pd
 import seaborn as sns
@@ -237,7 +260,7 @@ def beta_plot_pc(
     table_name: str,
     factor: str,
     taxon: str = "ncbi_tax_id",
-) -> pn.pane.Matplotlib:
+) -> Tuple[plt.figure, float]:
     """
     Creates a beta diversity PCoA plot.
 
@@ -249,7 +272,7 @@ def beta_plot_pc(
         taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
 
     Returns:
-        pn.pane.Matplotlib: A Matplotlib pane containing the beta diversity PCoA plot.
+        Tuple[plt.figure, float]: A tuple containing the beta diversity PCoA plot and the explained variance.
     """
     beta = beta_diversity_parametrized(
         tables_dict[table_name], taxon=taxon, metric="braycurtis"
