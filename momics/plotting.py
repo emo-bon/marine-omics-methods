@@ -12,6 +12,8 @@ from .diversity import (
     beta_diversity_parametrized,
 )
 
+PLOT_FACE_COLOR = "#e6e6e6"
+
 
 def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
     """
@@ -26,6 +28,7 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
     """
     flag_massage = False
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    plot.patch.set_facecolor(PLOT_FACE_COLOR)
     ax = plot.add_subplot(111)
 
     if color_by is not None:
@@ -82,6 +85,7 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
     """
     alpha_df = alpha_df.sort_values(by=factor)
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    plot.patch.set_facecolor(PLOT_FACE_COLOR)
     labels = fold_legend_labels_from_series(alpha_df[factor], 35)
 
     ax = plot.add_subplot(111)
@@ -117,6 +121,7 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
         plt.Figure: The average Shannon index plot.
     """
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    plot.patch.set_facecolor(PLOT_FACE_COLOR)
     ax = plot.add_subplot(111)
 
     sns.barplot(
@@ -280,7 +285,8 @@ def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:
         plt.Figure: The heatmap plot.
     """
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
-    ax = plot.add_subplot(111)
+    plot.patch.set_facecolor(PLOT_FACE_COLOR)
+    _ = plot.add_subplot(111)
     if norm:
         sns.heatmap(df, vmin=0, vmax=1.0, cmap="viridis")
     else:
