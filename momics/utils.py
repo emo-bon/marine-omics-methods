@@ -56,14 +56,12 @@ def setup_ipython():
     if "google.colab" in str(get_ipython()):
         print("Google Colab")
 
-        # !git clone https://github.com/palec87/momics-demos.git
-        # this gives access to utils module
-        # NOOO, this you need to do in the NB
-        # try:
-        #     os.system('git clone https://github.com/palec87/momics-demos.git')
-        #     print(f"Repository cloned")
-        # except OSError as e:
-        #     print(f"An error occurred while cloning the repository: {e}")
+        # Install ngrok for hosting the dashboard
+        try:
+            os.system('pip install pyngrok --quiet')
+            print('ngrok installed')
+        except OSError as e:
+            print(f"An error occurred while installing ngrok: {e}")
 
         # clone and install momics
         try:
@@ -77,13 +75,6 @@ def setup_ipython():
             print(f"momics installed")
         except OSError as e:
             print(f"An error occurred while installing momics: {e}")
-
-        # !pip install scikit-bio
-        # try:
-        #     os.system("pip install scikit-bio")
-        #     print(f"scikit-bio installed")
-        # except OSError as e:
-        #     print(f"An error occurred while installing scikit-bio: {e}")
 
         # !pip install panel hvplot
         try:
@@ -113,6 +104,21 @@ def is_ipython():
         print("Not IPython setup")
         return False
 
+
+def get_notebook_environment():
+    """
+    Determine if the notebook is running in VS Code or JupyterLab.
+
+    Returns:
+        str: The environment in which the notebook is running ('vscode', 'jupyterlab', or 'unknown').
+    """
+    # Check for VS Code environment variable
+    if 'VSCODE_PID' in os.environ:
+        return 'vscode'
+    
+    elif "JPY_SESSION_NAME" in os.environ:
+        return 'jupyterlab'
+    
 
 #####################
 # Memory management #
