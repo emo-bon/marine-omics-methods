@@ -5,10 +5,12 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-import os
+# import os
 import sys
+from pathlib import Path
 # for conversion from markdown to html
-sys.path.insert(0, os.path.abspath('../'))
+# sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, str(Path('..').resolve()))
 
 project = 'MOmics'
 copyright = '2025, David Palecek'
