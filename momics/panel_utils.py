@@ -61,12 +61,6 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
         description="At which taxon level is beta diversity calculated",
     )
 
-    # select_factor_beta = pn.widgets.Select(
-    #     name="Factor beta",
-    #     value=num_columns[0],
-    #     options=num_columns,
-    #     description="Factor to visualize beta PCoA towards",
-    # )
     full_columns = sorted(num_columns + cat_columns)
     select_factor_beta_all = pn.widgets.Select(
         name="Factor beta",
@@ -78,7 +72,6 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
     checkbox_beta_norm = pn.widgets.Checkbox(
         name="Normalize beta matrix",
         value=False,
-        # description="Normalize beta matrix by row sum",
     )
 
     ret = (
@@ -92,21 +85,20 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
     return ret
 
 
-def create_indicators() -> pn.FlexBox:
+def create_indicators() -> Tuple[pn.indicators.Progress, pn.indicators.Number]:
     """Creates indicators for RAM usage.
 
     Returns:
         pn.FlexBox: A FlexBox containing RAM usage indicators.
     """
     used_gb, total_gb = memory_load()
-    indicators = pn.FlexBox(
-        pn.indicators.Progress(
+    # indicators = pn.FlexBox(
+    progress_bar = pn.indicators.Progress(
             name="Ram usage", value=int(used_gb / total_gb * 100), width=200
-        ),
-        pn.indicators.Number(
+        )
+    usage = pn.indicators.Number(
             value=used_gb,
             name="RAM usage [GB]",
-            format="{value:,.1f}",
-        ),
-    )
-    return indicators
+            format="{value:,.2f}",
+        )
+    return progress_bar, usage
