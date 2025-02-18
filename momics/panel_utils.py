@@ -1,7 +1,45 @@
+import os
 import panel as pn
 from typing import List, Tuple
+from pyngrok import ngrok
 
 from .utils import memory_load
+
+
+def serve_app(template, env, name="panel app"):
+    if "google.colab" in str(get_ipython()) or env == "vscode":
+        server=pn.serve({"": template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")
+        os.system("curl http://localhost:4040")
+        
+
+        # Terminate open tunnels if exist
+        ngrok.kill()
+
+        # Setting the authtoken, get yours from https://dashboard.ngrok.com/auth
+        NGROK_AUTH_TOKEN = os.getenv("NGROK_TOKEN")
+        ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+
+        # Open an HTTPs tunnel on port 4040 for http://localhost:4040
+        if env == "vscode":
+            public_url = ngrok.connect(addr='4040')
+        else:
+            public_url = ngrok.connect(port='4040')
+        
+        print("Tracking URL:", public_url)
+    else:
+        # after development finished, this could be changed to np.serve()
+        server = pn.serve({name: template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")
+        # template.servable()
+    return server
+
+
+def close_server(server, env):
+    server.stop()
+    if "google.colab" in str(get_ipython()) or env == "vscode":
+        ngrok.disconnect(server)
+        ngrok.kill()
+    
+    return
 
 
 def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> Tuple[
