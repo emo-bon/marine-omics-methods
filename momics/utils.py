@@ -2,6 +2,7 @@ import os
 import sys
 import psutil
 import platform
+import logging
 
 
 #####################
@@ -119,6 +120,23 @@ def get_notebook_environment():
     elif "JPY_SESSION_NAME" in os.environ:
         return 'jupyterlab'
     
+
+###########
+# logging #
+###########
+FORMAT = "%(levelname)s | %(name)s | %(message)s"  # for logger
+
+def reconfig_logger(format_=FORMAT, level=logging.INFO):
+    """(Re-)configure logging"""
+    logging.basicConfig(format=format_, level=level, force=True)
+    
+    # removing tarnado access logs
+    hn = logging.NullHandler()
+    logging.getLogger("tornado.access").addHandler(hn)
+    logging.getLogger("tornado.access").propagate = False
+
+    logging.info("Logging.basicConfig completed successfully")
+
 
 #####################
 # Memory management #
