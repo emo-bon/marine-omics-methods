@@ -63,8 +63,10 @@ class BCGalaxy:
             k for k in self.gi.datasets.get_datasets() if key in k and k[key] == value
         ]
 
-        self.ds_names = [k["name"] for k in lst_dict]
-        return self.ds_names
+        self.ds = [(k["name"], k["id"]) for k in lst_dict]
+        self.ds_names = [k[0] for k in self.ds]
+        self.ds_ids = [k[1] for k in self.ds]
+        return self.ds, self.ds_names, self.ds_ids
 
     def get_datasets(self, name: str = None):
         """Retrieves datasets with an optional name filter.
@@ -88,6 +90,23 @@ class BCGalaxy:
         """
         self.histories = self.gi.histories.get_histories()
         return self.histories
+    
+    def clean_histories_for_display(self):
+        """Cleans the histories for display.
+
+        Returns:
+            List: A list of cleaned histories.
+        """
+        self.histories_cleaned = [
+            {
+                "id": k["id"],
+                "name": k["name"],
+                "last_updated": k["update_time"],
+            }
+            for k in self.histories if k["deleted"] != True
+        ]
+        return self.histories_cleaned
+
 
     def set_tool(self, tool_id: str):
         """Sets the tool ID.
