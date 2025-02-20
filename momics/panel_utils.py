@@ -7,9 +7,16 @@ from .utils import memory_load
 
 
 def serve_app(template, env, name="panel app"):
+    port = 4040
+    while is_port_in_use(port):
+        print("Port 4040 is in use, trying another port")
+        port += 1
+    print(f"Using port {port}")
+    server=pn.serve({name: template}, port=port, address="127.0.0.1", threaded=True, websocket_origin="*")
+    
     if "google.colab" in str(get_ipython()) or env == "vscode":
-        server=pn.serve({"": template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")
-        os.system("curl http://localhost:4040")
+        # server=pn.serve({"": template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")
+        os.system(f"curl http://localhost:{port}")
         
 
         # Terminate open tunnels if exist
@@ -21,14 +28,15 @@ def serve_app(template, env, name="panel app"):
 
         # Open an HTTPs tunnel on port 4040 for http://localhost:4040
         if env == "vscode":
-            public_url = ngrok.connect(addr='4040')
+            public_url = ngrok.connect(addr=str(port))
         else:
-            public_url = ngrok.connect(port='4040')
+            public_url = ngrok.connect(port=str(port))
         
         print("Tracking URL:", public_url)
     else:
+        pass
         # after development finished, this could be changed to np.serve()
-        server = pn.serve({name: template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")
+        # server = pn.serve({name: template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")
         # template.servable()
     return server
 
@@ -40,6 +48,12 @@ def close_server(server, env):
         ngrok.kill()
     
     return
+
+
+def is_port_in_use(port: int) -> bool:
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
 
 
 def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> Tuple[
