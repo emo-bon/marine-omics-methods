@@ -1,7 +1,7 @@
 import os
 import logging
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.config import ConfigClient
@@ -49,23 +49,42 @@ class BCGalaxy:
         self.api_key = os.getenv(api_key_var_name)
         self.gi = GalaxyInstance(self.url, key=self.api_key)
 
-    def get_datasets_by_key(self, key, value):
+    def get_datasets_by_key(self, key: str, value: str | List[str]) -> Tuple[List, List, List]:
         """Retrieves datasets by a specific key and value.
 
         Args:
             key (str): The key to filter datasets.
-            value (str): The value to filter datasets.
+            value (str | List[str]): The value to filter datasets.
 
         Returns:
-            List[str]: A list of dataset names that match the key and value.
+            Tuple[List[str], List[str], List[str]]:
+                A tuple containing:
+                - A list of datasets (tuples) that match the key and value. 
+                - A list of dataset names that match the key and value.
+                - A list of dataset IDs that match the key and value.
         """
-        lst_dict = [
-            k for k in self.gi.datasets.get_datasets() if key in k and k[key] == value
-        ]
 
+        if isinstance(value, list):
+            lst_dict = [
+                k
+                for k in self.gi.datasets.get_datasets()
+                if key in k and k[key] in value
+            ]
+        elif isinstance(value, str):
+            lst_dict = [
+                k 
+                for k in self.gi.datasets.get_datasets()
+                if key in k and k[key] == value
+            ]
+
+            
+        else:
+            raise ValueError("Value must be a string or a list of strings.")
+        
         self.ds = [(k["name"], k["id"]) for k in lst_dict]
         self.ds_names = [k[0] for k in self.ds]
         self.ds_ids = [k[1] for k in self.ds]
+        
         return self.ds, self.ds_names, self.ds_ids
 
     def get_datasets(self, name: str = None):

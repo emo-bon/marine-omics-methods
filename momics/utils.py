@@ -126,9 +126,9 @@ def get_notebook_environment():
 ###########
 FORMAT = "%(levelname)s | %(name)s | %(message)s"  # for logger
 
-def reconfig_logger(format_=FORMAT, level=logging.INFO):
+def reconfig_logger(format=FORMAT, level=logging.INFO):
     """(Re-)configure logging"""
-    logging.basicConfig(format=format_, level=level, force=True)
+    logging.basicConfig(format=format, level=level, force=True)
     
     # removing tarnado access logs
     hn = logging.NullHandler()
