@@ -2,6 +2,7 @@ import os
 import panel as pn
 from typing import List, Tuple
 from pyngrok import ngrok
+from IPython import get_ipython
 
 from .utils import memory_load
 
@@ -12,7 +13,9 @@ def serve_app(template, env, name="panel app"):
         print("Port 4040 is in use, trying another port")
         port += 1
     print(f"Using port {port}")
-    server=pn.serve({name: template}, port=port, address="127.0.0.1", threaded=True, websocket_origin="*")
+    server=pn.serve({name: template}, port=port, address="127.0.0.1", threaded=True,
+                    websocket_origin="*",
+                    )
     
     if "google.colab" in str(get_ipython()) or env == "vscode":
         # server=pn.serve({"": template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")

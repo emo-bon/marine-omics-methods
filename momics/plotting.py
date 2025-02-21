@@ -288,12 +288,6 @@ def beta_plot_pc(
         how="inner",
     )
 
-    # fig = pn.pane.Matplotlib(
-    #     plot_pcoa_black(pcoa_df, color_by=factor),
-    #     sizing_mode="stretch_both",
-    #     name="Beta PCoA",
-    # )
-    # return fig, explained_variance
     return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
 
 
