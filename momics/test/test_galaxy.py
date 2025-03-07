@@ -1,10 +1,8 @@
 import pytest
 import os
 
-# import logging
-# from datetime import datetime
 from unittest.mock import MagicMock, patch
-from momics.galaxy.bio_blend import Galaxy
+from momics.galaxy.bio_blend import RemGalaxy
 
 
 @pytest.fixture
@@ -16,7 +14,7 @@ def bbgalaxy():
         os.environ,
         {"GALAXY_URL": "http://fake-galaxy-instance", "GALAXY_API_KEY": "fake_api_key"},
     ):
-        return Galaxy(url_var_name="GALAXY_URL", api_key_var_name="GALAXY_API_KEY")
+        return RemGalaxy(url_var_name="GALAXY_URL", api_key_var_name="GALAXY_API_KEY")
 
 
 def test_init(bbgalaxy):

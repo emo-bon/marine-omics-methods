@@ -1,6 +1,6 @@
-from .bio_blend import Galaxy
+from .bio_blend import RemGalaxy
 
 
 __all__ = [
-    "Galaxy",
+    "RemGalaxy",
 ]

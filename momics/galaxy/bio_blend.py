@@ -7,7 +7,7 @@ from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.config import ConfigClient
 
 
-class Galaxy:
+class RemGalaxy:
     def __init__(self, url_var_name: str, api_key_var_name: str):
         """Initializes the BlueCloud instance.
 
