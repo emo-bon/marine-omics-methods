@@ -3,6 +3,7 @@ import sys
 import psutil
 import platform
 import logging
+from IPython import get_ipython
 
 
 #####################
@@ -59,8 +60,8 @@ def setup_ipython():
 
         # Install ngrok for hosting the dashboard
         try:
-            os.system('pip install pyngrok --quiet')
-            print('ngrok installed')
+            os.system("pip install pyngrok --quiet")
+            print("ngrok installed")
         except OSError as e:
             print(f"An error occurred while installing ngrok: {e}")
 
@@ -114,22 +115,23 @@ def get_notebook_environment():
         str: The environment in which the notebook is running ('vscode', 'jupyterlab', or 'unknown').
     """
     # Check for VS Code environment variable
-    if 'VSCODE_PID' in os.environ:
-        return 'vscode'
-    
+    if "VSCODE_PID" in os.environ:
+        return "vscode"
+
     elif "JPY_SESSION_NAME" in os.environ:
-        return 'jupyterlab'
-    
+        return "jupyterlab"
+
 
 ###########
 # logging #
 ###########
 FORMAT = "%(levelname)s | %(name)s | %(message)s"  # for logger
 
+
 def reconfig_logger(format=FORMAT, level=logging.INFO):
     """(Re-)configure logging"""
     logging.basicConfig(format=format, level=level, force=True)
-    
+
     # removing tarnado access logs
     hn = logging.NullHandler()
     logging.getLogger("tornado.access").addHandler(hn)

@@ -7,7 +7,7 @@ from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.config import ConfigClient
 
 
-class BCGalaxy:
+class Galaxy:
     def __init__(self, url_var_name: str, api_key_var_name: str):
         """Initializes the BlueCloud instance.
 
@@ -49,7 +49,9 @@ class BCGalaxy:
         self.api_key = os.getenv(api_key_var_name)
         self.gi = GalaxyInstance(self.url, key=self.api_key)
 
-    def get_datasets_by_key(self, key: str, value: str | List[str]) -> Tuple[List, List, List]:
+    def get_datasets_by_key(
+        self, key: str, value: str | List[str]
+    ) -> Tuple[List, List, List]:
         """Retrieves datasets by a specific key and value.
 
         Args:
@@ -59,7 +61,7 @@ class BCGalaxy:
         Returns:
             Tuple[List[str], List[str], List[str]]:
                 A tuple containing:
-                - A list of datasets (tuples) that match the key and value. 
+                - A list of datasets (tuples) that match the key and value.
                 - A list of dataset names that match the key and value.
                 - A list of dataset IDs that match the key and value.
         """
@@ -72,19 +74,18 @@ class BCGalaxy:
             ]
         elif isinstance(value, str):
             lst_dict = [
-                k 
+                k
                 for k in self.gi.datasets.get_datasets()
                 if key in k and k[key] == value
             ]
 
-            
         else:
             raise ValueError("Value must be a string or a list of strings.")
-        
+
         self.ds = [(k["name"], k["id"]) for k in lst_dict]
         self.ds_names = [k[0] for k in self.ds]
         self.ds_ids = [k[1] for k in self.ds]
-        
+
         return self.ds, self.ds_names, self.ds_ids
 
     def get_datasets(self, name: str = None):
@@ -109,7 +110,7 @@ class BCGalaxy:
         """
         self.histories = self.gi.histories.get_histories()
         return self.histories
-    
+
     def clean_histories_for_display(self):
         """Cleans the histories for display.
 
@@ -122,10 +123,10 @@ class BCGalaxy:
                 "name": k["name"],
                 "last_updated": k["update_time"],
             }
-            for k in self.histories if k["deleted"] != True
+            for k in self.histories
+            if k["deleted"] != True
         ]
         return self.histories_cleaned
-
 
     def set_tool(self, tool_id: str):
         """Sets the tool ID.

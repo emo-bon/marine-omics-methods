@@ -145,8 +145,7 @@ def test_alpha_plot(table_name, col_to_add, sample_metadata):
     data_dict = {
         table_name: add_column(data_dict[table_name], col_to_add),
     }
-    fig_pane = alpha_plot(data_dict, table_name, factor, sample_metadata,
-                          debug=True)
+    fig_pane = alpha_plot(data_dict, table_name, factor, sample_metadata, debug=True)
 
     # Check if the result is a panel Matplotlib pane
     assert isinstance(
@@ -306,6 +305,7 @@ def test_beta_plot():
     assert (
         heatmap_values == expected_values
     ).all(), "The heatmap values are not correct"
+
 
 # TODO: too complicated, need to simplify
 # def test_beta_plot_pc(sample_metadata):

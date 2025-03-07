@@ -43,6 +43,7 @@ def sample_factors():
 
     return pd.DataFrame(factors)
 
+
 @pytest.fixture
 def sample_metadata():
     """

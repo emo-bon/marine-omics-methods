@@ -2,6 +2,7 @@ import os
 import panel as pn
 from typing import List, Tuple
 from pyngrok import ngrok
+import pandas as pd
 from IPython import get_ipython
 
 from .utils import memory_load
@@ -13,14 +14,17 @@ def serve_app(template, env, name="panel app"):
         print("Port 4040 is in use, trying another port")
         port += 1
     print(f"Using port {port}")
-    server=pn.serve({name: template}, port=port, address="127.0.0.1", threaded=True,
-                    websocket_origin="*",
-                    )
-    
+    server = pn.serve(
+        {name: template},
+        port=port,
+        address="127.0.0.1",
+        threaded=True,
+        websocket_origin="*",
+    )
+
     if "google.colab" in str(get_ipython()) or env == "vscode":
         # server=pn.serve({"": template}, port=4040, address="127.0.0.1", threaded=True, websocket_origin="*")
         os.system(f"curl http://localhost:{port}")
-        
 
         # Terminate open tunnels if exist
         ngrok.kill()
@@ -34,7 +38,7 @@ def serve_app(template, env, name="panel app"):
             public_url = ngrok.connect(addr=str(port))
         else:
             public_url = ngrok.connect(port=str(port))
-        
+
         print("Tracking URL:", public_url)
     else:
         pass
@@ -49,17 +53,20 @@ def close_server(server, env):
     if "google.colab" in str(get_ipython()) or env == "vscode":
         ngrok.disconnect(server)
         ngrok.kill()
-    
+
     return
 
 
 def is_port_in_use(port: int) -> bool:
     import socket
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('localhost', port)) == 0
+        return s.connect_ex(("localhost", port)) == 0
 
 
-def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> Tuple[
+def diversity_select_widgets(
+    cat_columns: List[str], num_columns: List[str]
+) -> Tuple[
     pn.widgets.Select,
     pn.widgets.Select,
     pn.widgets.Select,
@@ -140,20 +147,98 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
     return ret
 
 
-def create_indicators() -> Tuple[pn.indicators.Progress, pn.indicators.Number]:
+#####################
+# Create indicators #
+#####################
+def create_indicators_landing_page(
+    df: pd.DataFrame,
+) -> List[pn.indicators.Number]:
+    """
+    Generates a list of indicators for the landing page based on the provided aggregated DataFrame.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing aggregated data with 'COMPLETED' and 'queued' columns.
+
+    Returns:
+        List[pn.indicators.Number]: A list of Panel indicators displaying the number of sequenced samples.
+    """
+    list_indicators = []
+
+    nom1 = int(df["COMPLETED"]["filters"].sum())
+    den1 = int(df["queued"]["filters"].sum()) + nom1
+    list_indicators.append(
+        pn.indicators.Number(
+            name="Water samples sequenced",
+            value=nom1,
+            format="{value}" + f"/{den1}",
+            width=150,
+            font_size="34px",
+            title_size="14px",
+        ),
+    )
+
+    nom2 = int(df["COMPLETED"]["sediment"].sum())
+    den2 = int(df["queued"]["sediment"].sum()) + nom2
+    list_indicators.append(
+        pn.indicators.Number(
+            name="Sediment samples sequenced",
+            value=nom2,
+            format="{value}" + f"/{den2}",
+            width=150,
+            font_size="34px",
+            title_size="14px",
+        ),
+    )
+
+    try:
+        nom3 = int(df["COMPLETED"]["water"].sum())
+    except KeyError:
+        nom3 = 0
+    den3 = int(df["queued"]["filters_blank"].sum()) + nom3
+    list_indicators.append(
+        pn.indicators.Number(
+            name="Blank Waters sequenced",
+            value=nom3,
+            format="{value}" + f"/{den3}",
+            width=150,
+            font_size="34px",
+            title_size="14px",
+        ),
+    )
+
+    try:
+        nom4 = int(df["COMPLETED"]["sediment_blank"].sum())
+    except KeyError:
+        nom4 = 0
+    den4 = int(df["queued"]["sediment_blank"].sum()) + nom4
+    list_indicators.append(
+        pn.indicators.Number(
+            name="Blanks Sediments sequenced",
+            value=nom4,
+            format="{value}" + f"/{den4}",
+            width=150,
+            font_size="34px",
+            title_size="14px",
+        ),
+    )
+    return list_indicators
+
+
+def create_indicators_diversity() -> Tuple[
+    pn.indicators.Progress, pn.indicators.Number
+]:
     """Creates indicators for RAM usage.
 
     Returns:
         pn.FlexBox: A FlexBox containing RAM usage indicators.
     """
     used_gb, total_gb = memory_load()
-    # indicators = pn.FlexBox(
     progress_bar = pn.indicators.Progress(
-            name="Ram usage", value=int(used_gb / total_gb * 100), width=200
-        )
+        name="Ram usage", value=int(used_gb / total_gb * 100), width=200
+    )
     usage = pn.indicators.Number(
-            value=used_gb,
-            name="RAM usage [GB]",
-            format="{value:,.2f}",
-        )
+        value=used_gb,
+        name="RAM usage [GB]",
+        format="{value:,.2f}",
+    )
     return progress_bar, usage

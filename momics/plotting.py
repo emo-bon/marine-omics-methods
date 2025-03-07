@@ -229,7 +229,9 @@ def av_alpha_plot(
 
 
 def beta_plot(
-    tables_dict: Dict[str, pd.DataFrame], table_name: str, norm: bool,
+    tables_dict: Dict[str, pd.DataFrame],
+    table_name: str,
+    norm: bool,
     taxon: str = "ncbi_tax_id",
 ) -> pn.pane.Matplotlib:
     """
@@ -278,7 +280,7 @@ def beta_plot_pc(
     beta = beta_diversity_parametrized(
         tables_dict[table_name], taxon=taxon, metric="braycurtis"
     )
-    pcoa_result = pcoa(beta, method="eigh") # , number_of_dimensions=3)
+    pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
     explained_variance = pcoa_result.proportion_explained[:2].sum() * 100
     pcoa_df = pd.merge(
         pcoa_result.samples,
@@ -371,93 +373,108 @@ def cut_xaxis_labels(ax: plt.axis, n: int = 15) -> plt.axis:
 ############
 ## Plotly ##
 ############
-def get_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
+def get_sankey(df, cat_cols=[], value_cols="", title="Sankey Diagram"):
     # Colors
     colorPalette = [
-        'rgba(31, 119, 180, 0.8)',
-        'rgba(255, 127, 14, 0.8)',
-        'rgba(44, 160, 44, 0.8)',
-        'rgba(214, 39, 40, 0.8)',
-        'rgba(148, 103, 189, 0.8)',
-        'rgba(140, 86, 75, 0.8)',
-        'rgba(227, 119, 194, 0.8)',
-        'rgba(127, 127, 127, 0.8)',
-        ]
+        "rgba(31, 119, 180, 0.8)",
+        "rgba(255, 127, 14, 0.8)",
+        "rgba(44, 160, 44, 0.8)",
+        "rgba(214, 39, 40, 0.8)",
+        "rgba(148, 103, 189, 0.8)",
+        "rgba(140, 86, 75, 0.8)",
+        "rgba(227, 119, 194, 0.8)",
+        "rgba(127, 127, 127, 0.8)",
+    ]
     labelList = []
     colorNumList = []
-    
+
     for catCol in cat_cols:
-        labelListTemp =  list(set(df[catCol].values))
+        labelListTemp = list(set(df[catCol].values))
         colorNumList.append(len(labelListTemp))
         labelList = labelList + labelListTemp
- 
+
     # remove duplicates from labelList
     labelList = list(dict.fromkeys(labelList))
- 
+
     # define colors based on number of levels
     colorList = []
     for idx, colorNum in enumerate(colorNumList):
-        colorList = colorList + [colorPalette[idx]]*colorNum
+        colorList = colorList + [colorPalette[idx]] * colorNum
 
     # transform df into a source-target pair
-    for i in range(len(cat_cols)-1):
-        if i==0:
-            sourceTargetDf = df[[cat_cols[i],cat_cols[i+1],value_cols]]
-            sourceTargetDf.columns = ['source','target','count']
+    for i in range(len(cat_cols) - 1):
+        if i == 0:
+            sourceTargetDf = df[[cat_cols[i], cat_cols[i + 1], value_cols]]
+            sourceTargetDf.columns = ["source", "target", "count"]
         else:
-            tempDf = df[[cat_cols[i],cat_cols[i+1],value_cols]]
-            tempDf.columns = ['source','target','count']
-            sourceTargetDf = pd.concat([sourceTargetDf,tempDf])
-        sourceTargetDf = sourceTargetDf.groupby(['source','target']).agg({'count':'sum'}).reset_index()
- 
+            tempDf = df[[cat_cols[i], cat_cols[i + 1], value_cols]]
+            tempDf.columns = ["source", "target", "count"]
+            sourceTargetDf = pd.concat([sourceTargetDf, tempDf])
+        sourceTargetDf = (
+            sourceTargetDf.groupby(["source", "target"])
+            .agg({"count": "sum"})
+            .reset_index()
+        )
+
     # add index for source-target pair
-    sourceTargetDf['sourceID'] = sourceTargetDf['source'].apply(lambda x: labelList.index(x))
-    sourceTargetDf['targetID'] = sourceTargetDf['target'].apply(lambda x: labelList.index(x))
- 
+    sourceTargetDf["sourceID"] = sourceTargetDf["source"].apply(
+        lambda x: labelList.index(x)
+    )
+    sourceTargetDf["targetID"] = sourceTargetDf["target"].apply(
+        lambda x: labelList.index(x)
+    )
+
     # creating data for the sankey diagram
     data = dict(
-        type='sankey',
-        node = dict(
-            pad = 15,
-            thickness = 20,
-            line = dict(
-                color = "black",
-                width = 0.5
-            ),
-            label = labelList,
-            color = colorList
+        type="sankey",
+        node=dict(
+            pad=15,
+            thickness=20,
+            line=dict(color="black", width=0.5),
+            label=labelList,
+            color=colorList,
         ),
-        link = dict(
-            source = sourceTargetDf['sourceID'],
-            target = sourceTargetDf['targetID'],
-            value = sourceTargetDf['count']
-        )
+        link=dict(
+            source=sourceTargetDf["sourceID"],
+            target=sourceTargetDf["targetID"],
+            value=sourceTargetDf["count"],
+        ),
     )
-    
+
     # override gray link colors with 'source' colors
     opacity = 0.4
     # change 'magenta' to its 'rgba' value to add opacity
-    data['node']['color'] = ['rgba(255,0,255, 0.8)' if color == "magenta" else color for color in data['node']['color']]
-    data['link']['color'] = [data['node']['color'][src].replace("0.8", str(opacity))
-                                        for src in data['link']['source']]
-    
-    fig = go.Figure(data=[go.Sankey(
-    # Define nodes
-    node = dict(
-      pad = 15,
-      thickness = 15,
-      line = dict(color = "black", width = 0.5),
-      label =  data['node']['label'],
-      color =  data['node']['color']
-    ),
-    # Add links
-    link = dict(
-      source =  data['link']['source'],
-      target =  data['link']['target'],
-      value =  data['link']['value'],
-      color =  data['link']['color']
-    ))])
-    
+    data["node"]["color"] = [
+        "rgba(255,0,255, 0.8)" if color == "magenta" else color
+        for color in data["node"]["color"]
+    ]
+    data["link"]["color"] = [
+        data["node"]["color"][src].replace("0.8", str(opacity))
+        for src in data["link"]["source"]
+    ]
+
+    fig = go.Figure(
+        data=[
+            go.Sankey(
+                # Define nodes
+                node=dict(
+                    pad=15,
+                    thickness=15,
+                    line=dict(color="black", width=0.5),
+                    label=data["node"]["label"],
+                    color=data["node"]["color"],
+                ),
+                # Add links
+                link=dict(
+                    source=data["link"]["source"],
+                    target=data["link"]["target"],
+                    value=data["link"]["value"],
+                    color=data["link"]["color"],
+                ),
+            )
+        ]
+    )
+
     fig.update_layout(title_text=title, font_size=10)
-    
+
     return fig

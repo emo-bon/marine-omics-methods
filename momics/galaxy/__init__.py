@@ -1,6 +1,6 @@
-from .blue_cloud import BCGalaxy
+from .bio_blend import Galaxy
 
 
 __all__ = [
-    "BCGalaxy",
+    "Galaxy",
 ]

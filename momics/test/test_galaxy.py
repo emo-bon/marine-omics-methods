@@ -4,34 +4,34 @@ import os
 # import logging
 # from datetime import datetime
 from unittest.mock import MagicMock, patch
-from momics.galaxy.blue_cloud import BCGalaxy
+from momics.galaxy.bio_blend import Galaxy
 
 
 @pytest.fixture
-def bcgalaxy():
+def bbgalaxy():
     """
-    Fixture that provides a BCGalaxy instance for testing.
+    Fixture that provides a Galaxy instance for testing.
     """
     with patch.dict(
         os.environ,
         {"GALAXY_URL": "http://fake-galaxy-instance", "GALAXY_API_KEY": "fake_api_key"},
     ):
-        return BCGalaxy(url_var_name="GALAXY_URL", api_key_var_name="GALAXY_API_KEY")
+        return Galaxy(url_var_name="GALAXY_URL", api_key_var_name="GALAXY_API_KEY")
 
 
-def test_init(bcgalaxy):
+def test_init(bbgalaxy):
     """
-    Tests the initialization of the BCGalaxy instance.
+    Tests the initialization of the Galaxy instance.
     """
     assert (
-        bcgalaxy.url == "http://fake-galaxy-instance"
+        bbgalaxy.url == "http://fake-galaxy-instance"
     ), "The Galaxy URL should be set correctly"
     assert (
-        bcgalaxy.api_key == "fake_api_key"
+        bbgalaxy.api_key == "fake_api_key"
     ), "The Galaxy API key should be set correctly"
 
 
-def test_get_histories(monkeypatch, bcgalaxy):
+def test_get_histories(monkeypatch, bbgalaxy):
     """
     Tests the get_histories method.
     """
@@ -40,9 +40,9 @@ def test_get_histories(monkeypatch, bcgalaxy):
         {"id": "2", "name": "History 2"},
     ]
     mock_get_histories = MagicMock(return_value=mock_histories)
-    monkeypatch.setattr(bcgalaxy.gi.histories, "get_histories", mock_get_histories)
+    monkeypatch.setattr(bbgalaxy.gi.histories, "get_histories", mock_get_histories)
 
-    histories = bcgalaxy.get_histories()
+    histories = bbgalaxy.get_histories()
 
     assert histories == mock_histories, "The histories should be retrieved correctly"
 
@@ -64,23 +64,23 @@ def test_get_histories(monkeypatch, bcgalaxy):
 #     ), "The new history name should be set correctly"
 
 
-def test_set_existing_history(monkeypatch, bcgalaxy):
+def test_set_existing_history(monkeypatch, bbgalaxy):
     """
     Tests the set_history method for setting an existing history.
     """
     mock_history = {"id": "3", "name": "Existing History"}
     mock_show_history = MagicMock(return_value=mock_history)
-    monkeypatch.setattr(bcgalaxy.gi.histories, "show_history", mock_show_history)
+    monkeypatch.setattr(bbgalaxy.gi.histories, "show_history", mock_show_history)
 
-    bcgalaxy.set_history(create=False, hid="3")
+    bbgalaxy.set_history(create=False, hid="3")
 
-    assert bcgalaxy.history_id == "3", "The existing history ID should be set correctly"
+    assert bbgalaxy.history_id == "3", "The existing history ID should be set correctly"
     assert (
-        bcgalaxy.history_name == "Existing History"
+        bbgalaxy.history_name == "Existing History"
     ), "The existing history name should be set correctly"
 
 
-def test_get_datasets_by_key(monkeypatch, bcgalaxy):
+def test_get_datasets_by_key(monkeypatch, bbgalaxy):
     """
     Tests the get_datasets_by_key method.
     """
@@ -89,9 +89,9 @@ def test_get_datasets_by_key(monkeypatch, bcgalaxy):
         {"name": "Dataset 2", "key": "value"},
     ]
     mock_get_datasets = MagicMock(return_value=mock_datasets)
-    monkeypatch.setattr(bcgalaxy.gi.datasets, "get_datasets", mock_get_datasets)
+    monkeypatch.setattr(bbgalaxy.gi.datasets, "get_datasets", mock_get_datasets)
 
-    datasets = bcgalaxy.get_datasets_by_key(key="key", value="value")
+    datasets = bbgalaxy.get_datasets_by_key(key="key", value="value")
 
     assert datasets == [
         "Dataset 1",
