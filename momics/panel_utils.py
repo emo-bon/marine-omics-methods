@@ -34,10 +34,10 @@ def serve_app(template, env, name="panel app"):
         ngrok.set_auth_token(NGROK_AUTH_TOKEN)
 
         # Open an HTTPs tunnel on port 4040 for http://localhost:4040
-        if env == "vscode":
-            public_url = ngrok.connect(addr=str(port))
-        else:
-            public_url = ngrok.connect(port=str(port))
+        # if env == "vscode":
+        public_url = ngrok.connect(addr=str(port))
+        # else:
+        #     public_url = ngrok.connect(port=str(port))
 
         print("Tracking URL:", public_url)
     else:
