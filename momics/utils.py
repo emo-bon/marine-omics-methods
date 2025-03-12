@@ -141,6 +141,8 @@ def get_notebook_environment():
 
     elif "JPY_SESSION_NAME" in os.environ:
         return "jupyterlab"
+    else:
+        return "unknown"
 
 
 ###########
