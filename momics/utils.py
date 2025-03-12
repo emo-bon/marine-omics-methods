@@ -85,6 +85,27 @@ def setup_ipython():
         except OSError as e:
             print(f"An error occurred while installing panel and hvplot: {e}")
 
+    elif "zmqshell" in str(get_ipython()):  # binder
+        print("Binder")
+        # clone and install momics
+        try:
+            os.system("git clone https://github.com/palec87/marine-omics.git")
+            print(f"Repository marine-omics cloned")
+        except OSError as e:
+            print(f"An error occurred while cloning the repository: {e}")
+
+        try:
+            os.system("pip install git+https://github.com/palec87/marine-omics.git")
+            print(f"momics installed")
+        except OSError as e:
+            print(f"An error occurred while installing momics: {e}")
+
+        # !pip install panel hvplot
+        try:
+            os.system("pip install panel hvplot")
+            print(f"panel and hvplot installed")
+        except OSError as e:
+            print(f"An error occurred while installing panel and hvplot: {e}")
     else:
         # assume local jupyterlab which has all the dependencies installed
         setup_local()
