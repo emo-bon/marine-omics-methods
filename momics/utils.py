@@ -49,6 +49,26 @@ def setup_local():
         raise NotImplementedError
 
 
+def install_common_remote_packages():
+    try:
+        os.system("git clone https://github.com/palec87/marine-omics.git")
+        print(f"Repository marine-omics cloned")
+    except OSError as e:
+        print(f"An error occurred while cloning the repository: {e}")
+
+    try:
+        os.system("pip install git+https://github.com/palec87/marine-omics.git")
+        print(f"momics installed")
+    except OSError as e:
+        print(f"An error occurred while installing momics: {e}")
+
+    try:
+        os.system("pip install panel hvplot")
+        print(f"panel and hvplot installed")
+    except OSError as e:
+        print(f"An error occurred while installing panel and hvplot: {e}")
+
+
 def setup_ipython():
     """
     Setup the IPython environment.
@@ -65,67 +85,25 @@ def setup_ipython():
         except OSError as e:
             print(f"An error occurred while installing ngrok: {e}")
 
-        # clone and install momics
-        try:
-            os.system("git clone https://github.com/palec87/marine-omics.git")
-            print(f"Repository marine-omics cloned")
-        except OSError as e:
-            print(f"An error occurred while cloning the repository: {e}")
+        # Install the momics package
+        install_common_remote_packages()
 
-        try:
-            os.system("pip install git+https://github.com/palec87/marine-omics.git")
-            print(f"momics installed")
-        except OSError as e:
-            print(f"An error occurred while installing momics: {e}")
-
-        # !pip install panel hvplot
-        try:
-            os.system("pip install panel hvplot")
-            print(f"panel and hvplot installed")
-        except OSError as e:
-            print(f"An error occurred while installing panel and hvplot: {e}")
-
-    elif "zmqshell" in str(get_ipython()):  # binder
+    elif "zmqshell" in str(get_ipython()) and "conda" in sys.prefix:  # binder
         print("Binder")
-        # clone and install momics
-        try:
-            os.system("git clone https://github.com/palec87/marine-omics.git")
-            print(f"Repository marine-omics cloned")
-        except OSError as e:
-            print(f"An error occurred while cloning the repository: {e}")
-
-        try:
-            os.system("pip install git+https://github.com/palec87/marine-omics.git")
-            print(f"momics installed")
-        except OSError as e:
-            print(f"An error occurred while installing momics: {e}")
-
-        # !pip install panel hvplot
-        try:
-            os.system("pip install panel hvplot")
-            print(f"panel and hvplot installed")
-        except OSError as e:
-            print(f"An error occurred while installing panel and hvplot: {e}")
+        install_common_remote_packages()
     else:
-        # assume local jupyterlab which has all the dependencies installed
+        # assume local jupyter server which has all the dependencies installed (because I do not do conda)
+        # TODO: this is not general
         setup_local()
 
-
 def is_ipython():
-    """
-    Check if the current environment is IPython.
-
-    Returns:
-        bool: True if the current environment is IPython, False otherwise.
-    """
     # This is for the case when the script is run from the Jupyter notebook
-    if "ipykernel" in sys.modules:
-        from IPython import get_ipython
-
-        return True
-    else:
+    if "ipykernel" not in sys.modules:
         print("Not IPython setup")
         return False
+    
+    from IPython import get_ipython
+    return True
 
 
 def get_notebook_environment():
