@@ -6,6 +6,9 @@ from skbio.diversity import beta_diversity
 from skbio.stats.ordination import pcoa
 
 
+#########################
+# Statistical functions #
+#########################
 def shannon_index(row: pd.Series) -> float:
     """
     Calculates the Shannon index for a given row of data.
