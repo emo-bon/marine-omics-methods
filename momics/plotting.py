@@ -293,6 +293,42 @@ def beta_plot_pc(
     return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
 
 
+# this means that the pivot table is already created
+def beta_plot_pc_granular(
+    filtered_data: pd.DataFrame,
+    metadata: pd.DataFrame,
+    factor: str,
+    # taxon: str = "ncbi_tax_id",
+) -> Tuple[plt.figure, float]:
+    """
+    Creates a beta diversity PCoA plot.
+
+    Args:
+        tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
+        metadata (pd.DataFrame): A DataFrame containing metadata.
+        table_name (str): The name of the table to process.
+        factor (str): The column name to color the points by.
+        taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
+
+    Returns:
+        Tuple[plt.figure, float]: A tuple containing the beta diversity PCoA plot and the explained variance.
+    """
+    from skbio.diversity import beta_diversity
+    # print(tables_dict[table_name].head())
+    beta = beta_diversity("braycurtis", filtered_data.iloc[:, 1:].T)
+    pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
+    explained_variance = pcoa_result.proportion_explained[:2].sum() * 100
+    pcoa_df = pd.merge(
+        pcoa_result.samples,
+        metadata,
+        left_index=True,
+        right_on="ref_code",
+        how="inner",
+    )
+
+    return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
+
+
 def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:
     """
     Creates a heatmap plot for beta diversity.

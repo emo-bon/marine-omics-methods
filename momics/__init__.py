@@ -6,4 +6,6 @@ submoduless = [
     "loader",
     "galaxy",
     "diversity",
+    "taxonomy",
+    "plotting",
 ]

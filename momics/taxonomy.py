@@ -7,7 +7,7 @@ inspired by Andrqej Tkacz, must be cleaned up and documented
 """
 
 
-def get_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
+def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Prepares the taxonomic data (LSU and SSU tables) for analysis. Apart from
     pivoting, it also normalizes and calculates square root of the abundances.
