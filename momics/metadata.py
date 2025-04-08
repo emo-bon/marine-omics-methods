@@ -6,15 +6,81 @@ Some of these methods work as temporary solution to bad or incomplete data valid
 Hopefully, that will not be the case for ever.
 """
 
-import os
 import pandas as pd
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from datetime import datetime
+
+
+#####################
+## Filter metadata ##
+#####################
+# Filter the metadata table based on the selections in box_granular
+def filter_metadata_table(metadata_df: pd.DataFrame, selected_factors: Dict[str, List[str]]) -> pd.DataFrame:
+    """
+    Filter the metadata DataFrame based on selected factors and their values.
+
+    Args:
+        metadata_df (pd.DataFrame): The metadata DataFrame to filter.
+        selected_factors (Dict[str, List[str]]): A dictionary where keys are factor names and values are lists of selected values.
+            If 'All' is in the list, that factor will not be filtered.
+    Returns:
+        pd.DataFrame: The filtered metadata DataFrame.
+    """
+    # Create a copy of the metadata DataFrame
+    filtered_metadata = metadata_df.copy()
+    # Apply filters for each selected factor
+    for factor, selected_values in selected_factors.items():
+        if 'All' not in selected_values:
+            filtered_metadata = filtered_metadata[filtered_metadata[factor].isin(selected_values)]
+    return filtered_metadata
+
+
+## filter data according to the metadata
+def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filter the DataFrame based on the filtered metadata.
+    This function filters the DataFrame columns based on the 'ref_code' values in the filtered metadata.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to filter.
+        filtered_metadata (pd.DataFrame): The filtered metadata DataFrame.
+    Returns:
+        pd.DataFrame: The filtered DataFrame.
+    """
+    # filter columns names of df which are in the filtered metadata
+    cols_to_keep = list([col for col in df.columns.str.strip() if col in filtered_metadata['ref_code'].to_list()])
+
+    filtered_df = df[cols_to_keep]
+    return filtered_df
 
 
 ######################
 ## Enhance metadata ##
 ######################
+def enhance_metadata(metadata: pd.DataFrame, df_validation: pd.DataFrame) -> pd.DataFrame:
+    """
+    Enhance the metadata DataFrame by processing the 'collection_date' column and extracting the season.
+    This function also filters the metadata based on the 'ref_code' values in the df_validation DataFrame.
+
+    Args:
+        metadata (pd.DataFrame): The metadata DataFrame to enhance.
+        df_validation (pd.DataFrame): The DataFrame containing valid samples for filtering.
+    Returns:
+        pd.DataFrame: The enhanced metadata DataFrame.
+    """
+    metadata = process_collection_date(metadata)
+    metadata = extract_season(metadata)
+
+    # Filter the metadata on the 'ref_code' only for entries that are in df_valid
+    metadata = metadata[metadata['ref_code'].isin(df_validation['ref_code'])]
+
+    missing = df_validation[~df_validation['ref_code'].isin(metadata['ref_code'])]
+    assert len(missing) == 0, "Missing samples in the metadata"
+    assert len(metadata) == len(df_validation), "Filtered metadata does not match the valid samples"
+
+    return metadata
+
+
 def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
     """
     Process the 'collection_date' column in the metadata DataFrame.

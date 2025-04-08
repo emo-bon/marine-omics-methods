@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from typing import List, Dict
 
 
 """
@@ -45,49 +46,88 @@ def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
     return pivot_table
 
 
-def separate_taxonomy(df):
-    prokaryotes_keywords = ['Bacteria', 'Archaea']
-    eukaryota_keywords = ['Discoba', 'Stramenopiles', 'Rhizaria', 'Alveolata', 'Amorphea', 'Archaeoplastida', 'Excavata']
-
+def separate_taxonomy(df: pd.DataFrame, eukaryota_keywords: List[str] = None) -> Dict[str, pd.DataFrame]:
+    """
+    Separate the taxonomic data into different categories based on the index names.
+    Args:
+        df (pd.DataFrame): The input DataFrame containing taxonomic information (LSU/SSU tables).
+        eukaryota_keywords (List[str]): List of keywords to filter Eukaryota data.
+    Returns:
+        Dict[str, pd.DataFrame]: A dictionary containing separate DataFrames for Prokaryotes and Eukaryota.
+    """
     # Separate rows based on "Bacteria", "Archaea", and "Eukaryota" entries
-    prokaryotes_all = df[df['taxonomic_concat'].str.contains("Bacteria|Archaea", regex=True)]
-    eukaryota_all = df[df['taxonomic_concat'].str.contains("Eukaryota", regex=True)]
-
-    # Save Prokaryotes and Eukaryota files
-    prokaryotes_all.to_csv("Prokaryotes_all.csv")
-    eukaryota_all.to_csv("Eukaryota_all.csv")
+    prokaryotes_all = df[df.index.str.contains("Bacteria|Archaea", regex=True)]
+    eukaryota_all = df[df.index.str.contains("Eukaryota", regex=True)]
 
     # Further divide "Prokaryotes all" into "Bacteria" and "Archaea"
-    bacteria = prokaryotes_all[prokaryotes_all['taxonomic_concat'].str.contains("Bacteria")]
-    archaea = prokaryotes_all[prokaryotes_all['taxonomic_concat'].str.contains("Archaea")]
-
-    # Save Bacteria and Archaea files
-    bacteria.to_csv("Bacteria.csv")
-    archaea.to_csv("Archaea.csv")
-
-    # Further divide "Eukaryota all" by specific keywords
-    eukaryota_dict = {}
-    for keyword in eukaryota_keywords:
-        subset = eukaryota_all[eukaryota_all['taxonomic_concat'].str.contains(keyword)]
-        eukaryota_dict[keyword] = subset
-        # Standardize each column to sum to 100 before saving the CSV
-        subset_normalized = subset.div(subset.sum(axis=0), axis=1) * 100
-        subset_normalized.to_csv(f"{keyword}.csv")
-
+    bacteria = prokaryotes_all[prokaryotes_all.index.str.contains("Bacteria")]
+    archaea = prokaryotes_all[prokaryotes_all.index.str.contains("Archaea")]
 
     # Apply taxonomy splitting to the index
-    taxonomy_levels = bacteria['taxonomic_concat'].apply(split_taxonomy)
-    taxonomy_df = pd.DataFrame(taxonomy_levels.tolist(), columns=['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
-                               index=bacteria.index)
+    taxonomy_levels = bacteria.index.to_series().apply(split_taxonomy)
+    taxonomy_df = pd.DataFrame(
+        taxonomy_levels.tolist(),
+        columns=['phylum', 'class', 'order', 'family', 'genus', 'species'],
+        index=bacteria.index,
+    )
 
     # Combine taxonomy with the abundance data
     bacteria_data = pd.concat([taxonomy_df, bacteria], axis=1)
 
-    return bacteria_data
+    # Aggregate at each taxonomic level and save to CSV
+    taxonomic_levels = ['phylum', 'class', 'order', 'family', 'genus']
+    bacteria_levels_dict = {}
+    for level in taxonomic_levels:
+        aggregated_df = aggregate_by_taxonomic_level(bacteria_data, level)
+        # Standardize the values so each column sums to 100
+        aggregated_df_normalized = aggregated_df.div(aggregated_df.sum(axis=0), axis=1) * 100
+        bacteria_levels_dict[f"Bacteria_{level}"] = aggregated_df_normalized
+
+    all_data = {
+        "Prokaryotes All": prokaryotes_all,
+        "Eukaryota All": eukaryota_all,
+        "Bacteria": bacteria,
+        "Archaea": archaea
+    }
+    # all_data.update(eukaryota_dict)
+    all_data.update(bacteria_levels_dict)
+
+    # If eukaryota keywords are provided, separate Eukaryota data
+    if eukaryota_keywords:
+        eukaryota_dict = separate_taxonomy_eukaryota(eukaryota_all, eukaryota_keywords)
+        all_data.update(eukaryota_dict)
+
+    return all_data
 
 
-# Function to extract taxonomic levels and remove prefixes before "Bacteria" or "Archaea"
-def split_taxonomy(index_name):
+def separate_taxonomy_eukaryota(df: pd.DataFrame, eukaryota_keywords: List[str]):
+    """
+    Separate Eukaryota data into different files based on specific keywords.
+    Args:
+        df (pd.DataFrame): The input DataFrame containing taxonomic information (LSU/SSU tables).
+        eukaryota_keywords (List[str]): List of keywords to filter Eukaryota data.
+    
+    Example keywords:
+        eukaryota_keywords = ['Discoba', 'Stramenopiles', 'Rhizaria', 'Alveolata',
+                              'Amorphea', 'Archaeoplastida', 'Excavata']
+    """
+    # Further divide "Eukaryota all" by specific keywords
+    eukaryota_dict = {}
+    for keyword in eukaryota_keywords:
+        subset = df[df['taxonomic_concat'].str.contains(keyword)]
+        eukaryota_dict[keyword] = subset
+
+    return eukaryota_dict
+
+
+def split_taxonomy(index_name: str) -> List[str]:
+    """
+    Splits the taxonomic string into its components and removes prefixes.
+    Args:
+        index_name (str): The taxonomic string to split.
+    Returns:
+        List[str]: A list of taxonomic levels.
+    """
     # Remove anything before "Bacteria" or "Archaea"
     if "Bacteria" in index_name:
         taxonomy = index_name.split("Bacteria;", 1)[1].split(";")
@@ -96,11 +136,18 @@ def split_taxonomy(index_name):
     else:
         taxonomy = []
     # Return a list with taxonomic levels up to species
-    return taxonomy[:7]  # ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+    return taxonomy[1:7]  # ['phylum', 'class', 'order', 'family', 'genus', 'species']
 
 
-# Function to aggregate data by a specific taxonomic level
-def aggregate_by_taxonomic_level(df, level):
+def aggregate_by_taxonomic_level(df: pd.DataFrame, level: str) -> pd.DataFrame:
+    """
+    Aggregates the DataFrame by a specific taxonomic level and sums abundances across samples.
+    Args:
+        df (pd.DataFrame): The input DataFrame containing taxonomic information.
+        level (str): The taxonomic level to aggregate by (e.g., 'phylum', 'class', etc.).
+    Returns:
+        pd.DataFrame: A DataFrame aggregated by the specified taxonomic level.
+    """
     # Drop rows where the level is missing
     df_level = df.dropna(subset=[level])
     # Group by the specified level and sum abundances across samples (columns)
