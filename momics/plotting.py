@@ -167,6 +167,38 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
     return plot
 
 
+## gecco analysis ##
+####################
+def mpl_bgcs_violin(df):
+    plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    plot.patch.set_facecolor(PLOT_FACE_COLOR)
+    ax = plot.add_subplot(111)
+
+    df['type'] = df['type'].fillna('Unknown')
+
+    sns.swarmplot(
+        data=df, x="type", y="average_p",
+        hue="max_p", size=7,
+        palette="coolwarm",
+        ax=ax)
+    sns.violinplot(
+        data=df, x="type", y="average_p",
+        inner=None, fill=False,
+        color="black",
+        ax=ax,
+    )
+    ax.set_ylim(0, 1)
+    
+    ax.set_title(f"Probabilities of identified BGCs by type")
+    ax.set_xlabel("BGC type")
+    ax.set_ylabel("Average probability")
+    ax = cut_xaxis_labels(ax, 15)
+
+    plt.tight_layout()
+    plt.close(plot)
+    return plot
+
+
 ##################
 # Plot for panel #
 ##################
