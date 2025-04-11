@@ -1,7 +1,6 @@
 import os
 import sys
 import psutil
-import platform
 import logging
 from IPython import get_ipython
 
@@ -24,29 +23,25 @@ def init_setup():
         ## For running at GColab, the easiest is to clone and then pip install some deps
         setup_ipython()
 
-    else:
-        setup_local()
+    # else:
+    #     setup_local()
 
 
-def setup_local():
-    """
-    Setup the local environment.
+# def setup_local():
+#     """
+#     Setup the local environment.
 
-    This function adds the path to the momics package to the sys.path.
+#     This function adds the path to the momics package to the sys.path.
 
-    Note: I do not install the package via pip install -e, I rather add the path to the package to the sys.path
-    -> faster prototyping of the momics package
-    """
-    if platform.system() == "Linux":
-        print("local Linux")
-        sys.path.append("/home/davidp/python_projects/marine_omics/marine-omics")
-    elif platform.system() == "Windows":
-        print("local Windows")
-        sys.path.append(
-            "C:/Users/David Palecek/Documents/Python_projects/marine_omics/marine-omics"
-        )
-    else:
-        raise NotImplementedError
+#     Note: I do not install the package via pip install -e, I rather add the path to the package to the sys.path
+#     -> faster prototyping of the momics package
+#     """
+#     if platform.system() == "Linux":
+#         print("local Linux")
+#     elif platform.system() == "Windows":
+#         print("local Windows")
+#     else:
+#         raise NotImplementedError
 
 
 def install_common_remote_packages():
@@ -88,21 +83,19 @@ def setup_ipython():
         # Install the momics package
         install_common_remote_packages()
 
-    elif "zmqshell" in str(get_ipython()) and "conda" in sys.prefix:  # binder
+    elif psutil.users() == [] and "conda" in sys.prefix:  # binder
         print("Binder")
         install_common_remote_packages()
     else:
-        # assume local jupyter server which has all the dependencies installed (because I do not do conda)
-        # TODO: this is not general
-        setup_local()
+        print("Local IPython, nothing else to install")
 
 def is_ipython():
     # This is for the case when the script is run from the Jupyter notebook
     if "ipykernel" not in sys.modules:
-        print("Not IPython setup")
+        print("Not an IPython setup")
         return False
     
-    from IPython import get_ipython
+    # from IPython import get_ipython
     return True
 
 
@@ -111,14 +104,19 @@ def get_notebook_environment():
     Determine if the notebook is running in VS Code or JupyterLab.
 
     Returns:
-        str: The environment in which the notebook is running ('vscode', 'jupyterlab', or 'unknown').
+        str: The environment in which the notebook is running ('vscode', 'jupyter:binder', 'jupyter:local' or 'unknown').
     """
     # Check for VS Code environment variable
     if "VSCODE_PID" in os.environ:
         return "vscode"
 
     elif "JPY_SESSION_NAME" in os.environ:
-        return "jupyterlab"
+        if psutil.users() == []:
+            print("Binder")
+            return "jupyter:binder"
+        else:
+            print("Local Jupyter")
+            return "jupyter:local"
     else:
         return "unknown"
 
