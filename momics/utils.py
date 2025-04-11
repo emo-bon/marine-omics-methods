@@ -25,18 +25,6 @@ def init_setup():
 
 
 def install_colab_packages():
-    # try:
-    #     os.system("git clone https://github.com/palec87/marine-omics.git")
-    #     print(f"Repository marine-omics cloned")
-    # except OSError as e:
-    #     print(f"An error occurred while cloning the repository: {e}")
-
-    # try:
-    #     os.system("pip install git+https://github.com/palec87/marine-omics.git")
-    #     print(f"momics installed")
-    # except OSError as e:
-    #     print(f"An error occurred while installing momics: {e}")
-
     try:
         os.system("pip install panel hvplot")
         print(f"panel and hvplot installed")
@@ -62,12 +50,6 @@ def setup_ipython():
 
         # Install the momics package
         install_colab_packages()
-
-    # elif psutil.users() == [] and "conda" in sys.prefix:  # binder
-    #     print("Binder")
-    #     install_colab_packages()
-    # else:
-    #     print("Local IPython, nothing else to install")
 
 def is_ipython():
     # This is for the case when the script is run from the Jupyter notebook
