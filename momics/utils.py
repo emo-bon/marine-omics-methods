@@ -23,26 +23,6 @@ def init_setup():
         ## For running at GColab, the easiest is to clone and then pip install some deps
         setup_ipython()
 
-    # else:
-    #     setup_local()
-
-
-# def setup_local():
-#     """
-#     Setup the local environment.
-
-#     This function adds the path to the momics package to the sys.path.
-
-#     Note: I do not install the package via pip install -e, I rather add the path to the package to the sys.path
-#     -> faster prototyping of the momics package
-#     """
-#     if platform.system() == "Linux":
-#         print("local Linux")
-#     elif platform.system() == "Windows":
-#         print("local Windows")
-#     else:
-#         raise NotImplementedError
-
 
 def install_common_remote_packages():
     try:
@@ -95,7 +75,6 @@ def is_ipython():
         print("Not an IPython setup")
         return False
     
-    # from IPython import get_ipython
     return True
 
 
