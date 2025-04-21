@@ -169,7 +169,7 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
 
 ## gecco analysis ##
 ####################
-def mpl_bgcs_violin(df):
+def mpl_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> plt.Figure:
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     plot.patch.set_facecolor(PLOT_FACE_COLOR)
     ax = plot.add_subplot(111)
@@ -187,7 +187,8 @@ def mpl_bgcs_violin(df):
         color="black",
         ax=ax,
     )
-    ax.set_ylim(0, 1)
+    if normalize:
+        ax.set_ylim(-0.1, 1.1)
     
     ax.set_title(f"Probabilities of identified BGCs by type")
     ax.set_xlabel("BGC type")
