@@ -6,10 +6,43 @@ Some of these methods work as temporary solution to bad or incomplete data valid
 Hopefully, that will not be the case for ever.
 """
 
+import os
 import pandas as pd
 from typing import Dict, List
 from datetime import datetime
 
+
+def get_metadata(folder):
+    # Load metadata
+    sample_metadata = pd.read_csv(
+        os.path.join(folder, "Batch1and2_combined_logsheets_2024-11-12.csv")
+    )
+
+    observatory_metadata = pd.read_csv(
+        os.path.join(folder, "Observatory_combined_logsheets_validated.csv")
+    )
+
+    # Merge metadata
+    full_metadata = pd.merge(
+        sample_metadata,
+        observatory_metadata,
+        on=["obs_id", "env_package"],  # Matching conditions
+        how="inner"  # Inner join
+    )
+
+    # Sort the merged dataframe by 'ref_code' column in ascending order
+    full_metadata = full_metadata.sort_values(by="ref_code", ascending=True)
+
+    # first convert some of the boolean cols
+    full_metadata["failure"] = full_metadata["failure"].astype(str)
+    # replace the 'nan' values with 'NA'
+    full_metadata["failure"] = full_metadata["failure"].replace("nan", "NA")
+
+
+    # adding replacement for the missing values for object type columns
+    full_metadata = fill_na_for_object_columns(full_metadata)
+    
+    return full_metadata
 
 #####################
 ## Filter metadata ##
@@ -77,6 +110,14 @@ def enhance_metadata(metadata: pd.DataFrame, df_validation: pd.DataFrame) -> pd.
     missing = df_validation[~df_validation['ref_code'].isin(metadata['ref_code'])]
     assert len(missing) == 0, "Missing samples in the metadata"
     assert len(metadata) == len(df_validation), "Filtered metadata does not match the valid samples"
+
+    # add column to identify properly the replicates
+    metadata["replicate_info"] = (
+        metadata["obs_id"].astype(str) + "_" + 
+        metadata["env_package"].astype(str) + "_" +
+        metadata["collection_date"].astype(str) + "_" +
+        metadata["size_frac"].astype(str)
+    )
 
     return metadata
 
@@ -147,4 +188,18 @@ def extract_season_single(row):
         return 'Autumn'
     else:  # Winter
         return 'Winter'
+
     
+def fill_na_for_object_columns(df):
+    """
+    Fill NA values with 'NA' for object columns in the dataframe.
+
+    Args:
+        df (pd.DataFrame): The input dataframe.
+
+    Returns:
+        pd.DataFrame: The dataframe with NA values filled for object columns.
+    """
+    # Apply fillna only to object columns
+    df[df.select_dtypes(include=['object']).columns] = df.select_dtypes(include=['object']).apply(lambda col: col.fillna('NA'))
+    return df
