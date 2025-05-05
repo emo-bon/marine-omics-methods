@@ -11,7 +11,10 @@ inspired by Andrqej Tkacz, must be cleaned up and documented
 def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Prepares the taxonomic data (LSU and SSU tables) for analysis. Apart from
-    pivoting, it also normalizes and calculates square root of the abundances.
+    pivoting, it also normalizes and calculates square root of the abundances, 
+    ie Total Sum Scaling (TSS) followed by Square Root Transformation.
+
+    TODO: refactor scaling to a new method and offer different options.
 
     Args:
         df (pd.DataFrame): The input DataFrame containing taxonomic information.
