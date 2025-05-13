@@ -121,7 +121,7 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
         cmap=color_mapper.palette,  # Apply the color mapper's palette
         legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
-        backend_opts={"fig.toolbar.autohide": True},
+        backend_opts={"plot.toolbar.autohide": True},
     )
     return fig
 
@@ -161,7 +161,7 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
         show_legend=False,
         # legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
-        backend_opts={"fig.toolbar.autohide": True},
+        backend_opts={"plot.toolbar.autohide": True},
     )
     return fig
 
@@ -560,7 +560,7 @@ def hvplot_plot_pcoa_black(
         cmap=color_mapper.palette if color_by is not None else None,  # Apply the color mapper's palette if available
         legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
-        backend_opts={"fig.toolbar.autohide": True},
+        backend_opts={"plot.toolbar.autohide": True},
     )
     return fig
 
