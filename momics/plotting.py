@@ -215,7 +215,7 @@ def hvplot_plot_pcoa_black(
             xlabel="PC1",
             ylabel="PC2",
             title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
-            size=32,
+            size=64,
             fill_alpha=0.5,
             color=color_by,  # Use the factor column for coloring
         )
@@ -237,7 +237,7 @@ def hvplot_plot_pcoa_black(
             ylabel="PC2",
             title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
             color="black",  # Use color_by or black for coloring
-            size=32,
+            size=64,
             fill_alpha=0.5,
         ).opts(
             show_legend=False,
