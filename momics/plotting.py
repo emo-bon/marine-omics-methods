@@ -116,7 +116,7 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
     )
 
     # Create the horizontal bar plot using hvplot
-    plot = alpha.hvplot.barh(
+    plot = alpha.hvplot.bar(
         x=factor,
         y="Shannon",
         xlabel=factor,
@@ -124,8 +124,8 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
         title=f"Average Shannon Index Grouped by {factor}",
         color=factor,  # Use the factor column for coloring
     ).opts(
-        yticks=0,  # remove xticks labels
-        xaxis="top",
+        # yticks=0,  # remove xticks labels
+        # xaxis="top",
         cmap=color_mapper.palette,  # Apply the color mapper's palette
         legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
@@ -382,8 +382,9 @@ def av_alpha_plot(
         fig = pn.pane.HoloViews(
             hvplot_average_per_factor(alpha, factor=factor),
             name="AV Alpha div",
-            width=900,
-            height=1500,
+            sizing_mode="stretch_both",
+            # width=900,
+            # height=1500,
         )
     else:
         raise ValueError(f"Unknown backend: {backend}")
