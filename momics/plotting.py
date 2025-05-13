@@ -518,20 +518,20 @@ def hvplot_plot_pcoa_black(
     Returns:
         hv.element.Scatter: The PCoA plot.
     """
-    # Define the color mapper using Bokeh's CategoricalColorMapper
-    if len(pcoa_df[color_by].unique()) <= 20:
-        pal = Category20[len(pcoa_df[color_by].unique())]  # Use the correct number of colors
-    else:
-        pal = viridis(len(pcoa_df[color_by].unique()))
-    
-    color_mapper = CategoricalColorMapper(
-        factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
-        palette=pal,
-    )
-
     # percentage of valid values
     perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
     if color_by is not None:
+        # Define the color mapper using Bokeh's CategoricalColorMapper
+        if len(pcoa_df[color_by].unique()) <= 20:
+            pal = Category20[len(pcoa_df[color_by].unique())]  # Use the correct number of colors
+        else:
+            pal = viridis(len(pcoa_df[color_by].unique()))
+        
+        color_mapper = CategoricalColorMapper(
+            factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
+            palette=pal,
+        )
+
         # Create the scatter plot using hvplot
         fig = pcoa_df.hvplot.scatter(
             x="PC1",
