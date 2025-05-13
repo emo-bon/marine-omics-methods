@@ -73,6 +73,10 @@ def hvplot_heatmap(
         xlabel="Sample",
         ylabel="Sample",
         title=f"Beta Diversity ({taxon})",
+    ).opts(
+        xticks=0,  # remove xticks labels
+        yticks=0,  # remove yticks labels
+        show_legend=False,  # hide legend
     )
     if norm:
         heatmap.opts(clim=(0, 1.0))  # Set color limits for normalization
@@ -112,10 +116,11 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
         title=f"Alpha Diversity ({factor})",
         color=factor,  # Use the factor column for coloring
     ).opts(
-        yticks=0,  # remove xticks labels
+        yticks=0,  # remove yticks labels
         xaxis="top",
         cmap=color_mapper.palette,  # Apply the color mapper's palette
-        legend_position="top_right",  # Adjust legend position
+        # legend_position="top_right",  # Adjust legend position
+        legend_position='outer',
         tools=["hover"],  # Add hover tool for interactivity
         backend_opts={"plot.toolbar.autohide": True},
     )
@@ -156,7 +161,9 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
         # yticks=0,  # remove xticks labels
         # xaxis="top",
         cmap=color_mapper.palette,  # Apply the color mapper's palette
-        legend_position="top_right",  # Adjust legend position
+        # hide legend
+        show_legend=False,
+        # legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
         backend_opts={"plot.toolbar.autohide": True},
     )
