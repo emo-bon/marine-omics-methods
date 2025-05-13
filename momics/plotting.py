@@ -311,7 +311,7 @@ def alpha_plot(
     table_name: str,
     factor: str,
     metadata: pd.DataFrame,
-    order: str = "factor",  # or value
+    order: str = "factor",  # or values
     debug: bool = False,
     backend: str = "hvplot",  # Options: "matplotlib" or "hvplot"
 ) -> Union[pn.pane.Matplotlib, pn.pane.HoloViews]:
@@ -332,9 +332,9 @@ def alpha_plot(
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
     #sort by factor
-    if order == "Factor":
+    if order == "factor":
         alpha = alpha.sort_values(by=factor)
-    elif order == "Values":
+    elif order == "values":
         alpha = alpha.sort_values(by="Shannon")
     else:
         raise ValueError(f"Unknown order: {order}")
