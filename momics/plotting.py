@@ -108,7 +108,7 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
     )
 
     # Create the horizontal bar plot using hvplot
-    plot = alpha.hvplot.barh(
+    fig = alpha.hvplot.barh(
         x="ref_code",
         y="Shannon",
         xlabel="Sample",
@@ -121,9 +121,9 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
         cmap=color_mapper.palette,  # Apply the color mapper's palette
         legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
-        backend_opts={"plot.toolbar.autohide": True},
+        backend_opts={"fig.toolbar.autohide": True},
     )
-    return plot
+    return fig
 
 
 def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
@@ -149,7 +149,7 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
     )
 
     # Create the horizontal bar plot using hvplot
-    plot = alpha.hvplot.bar(
+    fig = alpha.hvplot.bar(
         x=factor,
         y="Shannon",
         xlabel=factor,
@@ -157,16 +157,13 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
         title=f"Average Shannon Index Grouped by {factor}",
         color=factor,  # Use the factor column for coloring
     ).opts(
-        # yticks=0,  # remove xticks labels
-        # xaxis="top",
         cmap=color_mapper.palette,  # Apply the color mapper's palette
-        # hide legend
         show_legend=False,
         # legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
-        backend_opts={"plot.toolbar.autohide": True},
+        backend_opts={"fig.toolbar.autohide": True},
     )
-    return plot
+    return fig
 
 
 ##############
@@ -184,9 +181,9 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
         plt.Figure: The PCoA plot.
     """
     flag_massage = False
-    plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
-    plot.patch.set_facecolor(PLOT_FACE_COLOR)
-    ax = plot.add_subplot(111)
+    fig = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    fig.patch.set_facecolor(PLOT_FACE_COLOR)
+    ax = fig.add_subplot(111)
 
     if color_by is not None:
         labels = fold_legend_labels_from_series(pcoa_df[color_by], 35)
@@ -226,8 +223,8 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
     else:
         ax.set_title("PCoA Plot")
     plt.tight_layout()
-    plt.close(plot)
-    return plot
+    plt.close(fig)
+    return fig
 
 
 def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figure:
@@ -240,11 +237,11 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
     Returns:
         plt.Figure: The Shannon index plot.
     """
-    plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
-    plot.patch.set_facecolor(PLOT_FACE_COLOR)
+    fig = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    fig.patch.set_facecolor(PLOT_FACE_COLOR)
     labels = fold_legend_labels_from_series(alpha_df[factor], 35)
 
-    ax = plot.add_subplot(111)
+    ax = fig.add_subplot(111)
     sns.barplot(
         data=alpha_df,
         x="ref_code",
@@ -263,8 +260,8 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
 
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.close(plot)
-    return plot
+    plt.close(fig)
+    return fig
 
 
 def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
@@ -277,9 +274,9 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
     Returns:
         plt.Figure: The average Shannon index plot.
     """
-    plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
-    plot.patch.set_facecolor(PLOT_FACE_COLOR)
-    ax = plot.add_subplot(111)
+    fig = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    fig.patch.set_facecolor(PLOT_FACE_COLOR)
+    ax = fig.add_subplot(111)
 
     sns.barplot(
         data=df,
@@ -297,16 +294,16 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
 
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.close(plot)
-    return plot
+    plt.close(fig)
+    return fig
 
 
 ## gecco analysis ##
 ####################
 def mpl_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> plt.Figure:
-    plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
-    plot.patch.set_facecolor(PLOT_FACE_COLOR)
-    ax = plot.add_subplot(111)
+    fig = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    fig.patch.set_facecolor(PLOT_FACE_COLOR)
+    ax = fig.add_subplot(111)
 
     df['type'] = df['type'].fillna('Unknown')
 
@@ -330,8 +327,8 @@ def mpl_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> plt.Figure:
     ax = cut_xaxis_labels(ax, 15)
 
     plt.tight_layout()
-    plt.close(plot)
-    return plot
+    plt.close(fig)
+    return fig
 
 
 ##################
@@ -473,7 +470,8 @@ def beta_plot_pc(
     table_name: str,
     factor: str,
     taxon: str = "ncbi_tax_id",
-) -> Tuple[plt.figure, float]:
+    backend: str = "hvplot",  # Options: "matplotlib" or "hvplot"
+) -> Tuple[Union[plt.figure, hv.element.Scatter], float]:
     """
     Creates a beta diversity PCoA plot.
 
@@ -483,9 +481,10 @@ def beta_plot_pc(
         table_name (str): The name of the table to process.
         factor (str): The column name to color the points by.
         taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
+        backend (str): The plotting backend to use. Can be "matplotlib" or "hvplot".
 
     Returns:
-        Tuple[plt.figure, float]: A tuple containing the beta diversity PCoA plot and the explained variance.
+        Tuple[Union[plt.figure, hv.element.Scatter], float]: A tuple containing the beta diversity PCoA plot and the explained variance.
     """
     beta = beta_diversity_parametrized(
         tables_dict[table_name], taxon=taxon, metric="braycurtis"
@@ -499,11 +498,56 @@ def beta_plot_pc(
         right_on="ref_code",
         how="inner",
     )
+    if backend == "matplotlib":
+        fig = plot_pcoa_black(pcoa_df, color_by=factor)
+    elif backend == "hvplot":
+        fig = plot_pcoa_black(pcoa_df, color_by=factor)
+    else:
+        raise ValueError(f"Unknown backend: {backend}")
+    return fig, explained_variance
 
-    return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
+
+def hvplot_plot_pcoa_black(
+    pcoa_df: pd.DataFrame, color_by: str = None
+) -> hv.element.Scatter:
+    """
+    Plots a PCoA plot with optional coloring using hvplot.
+    Args:
+        pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
+        color_by (str, optional): The column name to color the points by. Defaults to None.
+    Returns:
+        hv.element.Scatter: The PCoA plot.
+    """
+    # Define the color mapper using Bokeh's CategoricalColorMapper
+    if len(pcoa_df[color_by].unique()) <= 20:
+        pal = Category20[len(pcoa_df[color_by].unique())]  # Use the correct number of colors
+    else:
+        pal = viridis(len(pcoa_df[color_by].unique()))
+    
+    color_mapper = CategoricalColorMapper(
+        factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
+        palette=pal,
+    )
+
+    # percentage of valid values
+    perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
+    # Create the scatter plot using hvplot
+    fig = pcoa_df.hvplot.scatter(
+        x="PC1",
+        y="PC2",
+        xlabel="PC1",
+        ylabel="PC2",
+        title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+        color=color_by,  # Use the factor column for coloring
+    ).opts(
+        cmap=color_mapper.palette,  # Apply the color mapper's palette
+        legend_position="top_right",  # Adjust legend position
+        tools=["hover"],  # Add hover tool for interactivity
+        backend_opts={"fig.toolbar.autohide": True},
+    )
+    return fig
 
 
-# this means that the pivot table is already created
 def beta_plot_pc_granular(
     filtered_data: pd.DataFrame,
     metadata: pd.DataFrame,
@@ -551,17 +595,17 @@ def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:
     Returns:
         plt.Figure: The heatmap plot.
     """
-    plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
-    plot.patch.set_facecolor(PLOT_FACE_COLOR)
-    _ = plot.add_subplot(111)
+    fig = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
+    fig.patch.set_facecolor(PLOT_FACE_COLOR)
+    _ = fig.add_subplot(111)
     if norm:
         sns.heatmap(df, vmin=0, vmax=1.0, cmap="viridis")
     else:
         sns.heatmap(df, cmap="viridis")
     plt.title(f"Beta diversity for {taxon}")
     plt.tight_layout()
-    plt.close(plot)
-    return plot
+    plt.close(fig)
+    return fig
 
 
 ####################
