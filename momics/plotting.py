@@ -494,10 +494,10 @@ def av_alpha_plot(
     elif backend == "hvplot":
         fig = pn.pane.HoloViews(
             hvplot_average_per_factor(alpha, factor=factor),
-            # sizing_mode="stretch_both",
+            sizing_mode="stretch_both",
             name="AV Alpha div",
-            width=1300,
-            height=600,
+            # width=1300,
+            # height=600,
         )
     else:
         raise ValueError(f"Unknown backend: {backend}")
