@@ -215,6 +215,7 @@ def hvplot_plot_pcoa_black(
             xlabel="PC1",
             ylabel="PC2",
             title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+            size=12,
             color=color_by,  # Use the factor column for coloring
         )
         try:
@@ -235,6 +236,7 @@ def hvplot_plot_pcoa_black(
             ylabel="PC2",
             title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
             color="black",  # Use color_by or black for coloring
+            size=14,
         ).opts(
             show_legend=False,
             tools=["hover"],  # Add hover tool for interactivity
@@ -493,7 +495,7 @@ def av_alpha_plot(
             name="AV Alpha div",
             sizing_mode="stretch_both",
             # width=1000,
-            height=600,
+            height=500,
         )
     else:
         raise ValueError(f"Unknown backend: {backend}")
