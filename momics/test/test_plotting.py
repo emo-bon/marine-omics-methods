@@ -283,47 +283,59 @@ def test_av_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
     #     ]
     # ), "The hues are not applied correctly"
 
-
-def test_beta_plot():
+@pytest.mark.parametrize(
+    "norm, backend",
+    [
+        (True, "hvplot"),
+        (False, "hvplot"),
+        (True, "matplotlib"),
+        (False, "matplotlib"),
+    ],
+)
+def test_beta_plot(norm, backend):
     """
     Tests the beta_plot function.
     """
     table_name = "sample_table"
-    norm = False
     taxon = "GO:0001"
     data = sample_tables_dict(table_name, add_abundance=True)
     data = {
         table_name: add_column(data[table_name], "ncbi_tax_id"),
     }
-    fig_pane = beta_plot(data, table_name, norm, taxon)
+    fig_pane = beta_plot(data, table_name, norm, taxon, backend=backend)
 
+    hash_pane = {'matplotlib': pn.pane.Matplotlib, 'hvplot': pn.pane.HoloViews}
     # Check if the result is a panel Matplotlib pane
     assert isinstance(
-        fig_pane, pn.pane.Matplotlib
-    ), "The result should be a panel Matplotlib pane"
+        fig_pane, hash_pane[backend]
+    ), f"The result should be a panel {backend} pane"
 
     # Extract the figure from the pane
     fig = fig_pane.object
 
-    # Check if the result is a matplotlib Figure
-    assert isinstance(fig, plt.Figure), "The result should be a matplotlib Figure"
+    if backend == "hvplot":
+        # Check if the result is a hvplot Figure
+        assert isinstance(fig, hv.element.HeatMap), "The result should be a hvplot Figure"
+    elif backend == "matplotlib":
+        # Check if the result is a matplotlib Figure
+        assert isinstance(fig, plt.Figure), "The result should be a matplotlib Figure"
 
-    # Check if the plot contains the correct labels and title
-    ax = fig.axes[0]
-    assert (
-        ax.get_title() == f"Beta diversity for {taxon}"
-    ), f"The title should be 'Beta diversity for {taxon}'"
+        # Check if the plot contains the correct labels and title
+        ax = fig.axes[0]
+        assert (
+            ax.get_title() == f"Beta diversity for {taxon}"
+        ), f"The title should be 'Beta diversity for {taxon}'"
 
-    # Check if the heatmap is created with the correct data
-    beta_df = beta_diversity_parametrized(
-        data[table_name], taxon=taxon, metric="braycurtis"
-    )
-    heatmap_data = beta_df.to_data_frame()
-    heatmap_values = ax.collections[0].get_array().reshape(heatmap_data.shape)
-    expected_values = heatmap_data.values
-    assert (
-        heatmap_values == expected_values
-    ).all(), "The heatmap values are not correct"
+        # Check if the heatmap is created with the correct data
+        beta_df = beta_diversity_parametrized(
+            data[table_name], taxon=taxon, metric="braycurtis"
+        )
+        heatmap_data = beta_df.to_data_frame()
+        heatmap_values = ax.collections[0].get_array().reshape(heatmap_data.shape)
+        expected_values = heatmap_data.values
+        assert (
+            heatmap_values == expected_values
+        ).all(), "The heatmap values are not correct"
 
 
 # TODO: too complicated, need to simplify

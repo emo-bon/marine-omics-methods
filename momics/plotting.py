@@ -52,6 +52,35 @@ PLOT_FACE_COLOR = "#e6e6e6"
 ##########
 # HVplot #
 ##########
+def hvplot_heatmap(
+    df: pd.DataFrame, taxon: str, norm: bool = False
+) -> hv.element.HeatMap:
+    """
+    Creates a heatmap plot for beta diversity using hvplot.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing beta diversity distances.
+        taxon (str): The taxon level for beta diversity calculation.
+        norm (bool): Whether to normalize the data.
+
+    Returns:
+        hv.element.HeatMap: A heatmap plot of beta diversity.
+    """    
+    # Create the heatmap using hvplot
+    heatmap = df.hvplot.heatmap(
+        cmap="viridis",
+        colorbar=True,
+        xlabel="Sample",
+        ylabel="Sample",
+        title=f"Beta Diversity ({taxon})",
+    )
+    if norm:
+        heatmap.opts(clim=(0, 1.0))  # Set color limits for normalization
+    else:
+        heatmap.opts(clim=(df.min().min(), df.max().max()))  # Set color limits based on data
+    return heatmap
+
+
 def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
     """
     Creates a horizontal bar plot for alpha diversity using hvplot.
@@ -396,7 +425,8 @@ def beta_plot(
     table_name: str,
     norm: bool,
     taxon: str = "ncbi_tax_id",
-) -> pn.pane.Matplotlib:
+    backend: str = "hvplot",  # Options: "matplotlib" or "hvplot"
+) -> Union[pn.pane.Matplotlib, pn.pane.HoloViews]:
     """
     Creates a beta diversity heatmap plot.
 
@@ -404,19 +434,30 @@ def beta_plot(
         tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
         table_name (str): The name of the table to process.
         taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
+        norm (bool): Whether to normalize the data.
+        backend (str): The plotting backend to use. Can be "matplotlib" or "hvplot".
 
     Returns:
-        pn.pane.Matplotlib: A Matplotlib pane containing the beta diversity heatmap plot.
+        Union[pn.pane.Matplotlib, pn.pane.HoloViews]: A pane containing the beta diversity heatmap plot.
     """
     beta = beta_diversity_parametrized(
         tables_dict[table_name], taxon=taxon, metric="braycurtis"
     )
 
-    fig = pn.pane.Matplotlib(
-        mpl_plot_heatmap(beta.to_data_frame(), taxon=taxon, norm=norm),
-        sizing_mode="stretch_both",
-        name="Beta div",
-    )
+    if backend == "matplotlib":
+        fig = pn.pane.Matplotlib(
+            mpl_plot_heatmap(beta.to_data_frame(), taxon=taxon, norm=norm),
+            sizing_mode="stretch_both",
+            name="Beta div",
+        )
+    elif backend == "hvplot":
+        fig = pn.pane.HoloViews(
+            hvplot_heatmap(beta.to_data_frame(), taxon=taxon, norm=norm),
+            sizing_mode="stretch_both",
+            name="Beta div",
+        )
+    else:
+        raise ValueError(f"Unknown backend: {backend}")
     return fig
 
 
@@ -499,6 +540,7 @@ def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:
     Args:
         df (pd.DataFrame): A DataFrame containing beta diversity distances.
         taxon (str): The taxon level for beta diversity calculation.
+        norm (bool): Whether to normalize the data.
 
     Returns:
         plt.Figure: The heatmap plot.
