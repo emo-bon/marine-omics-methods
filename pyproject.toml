@@ -9,6 +9,8 @@ maintainers = [
 requires-python = ">=3.10"
 dependencies = [
     "bioblend>=1.4.0",
+    "bokeh>=3.7.3",
+    "holoviews>=1.20.0",
     "fastparquet>=2024.11.0",
     "ipython>=8.30.0",
     "matplotlib>=3.5",

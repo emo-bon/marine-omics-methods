@@ -2,17 +2,21 @@
 This module contains functions for plotting alpha and beta diversity results.
 
 Functions:
+- hvplot_alpha_diversity: Creates a horizontal bar plot for alpha diversity using hvplot.
 - plot_pcoa_black: Plots a PCoA plot with optional coloring.
 - mpl_alpha_diversity: Plots the Shannon index grouped by a factor.
 - mpl_average_per_factor: Plots the average Shannon index grouped by a factor.
+- mpl_bgcs_violin: Creates a violin plot for BGC probabilities by type.
 - alpha_plot: Creates an alpha diversity plot.
 - av_alpha_plot: Creates an average alpha diversity plot.
 - beta_plot: Creates a beta diversity heatmap plot.
 - beta_plot_pc: Creates a beta diversity PCoA plot.
+- beta_plot_pc_granular: Creates a beta diversity PCoA plot for granular data.
 - mpl_plot_heatmap: Creates a heatmap plot for beta diversity.
 - fold_legend_labels_from_series: Folds a list of labels to a maximum length from a Series.
 - change_legend_labels: Changes the labels of a legend on a given matplotlib axis.
 - cut_xaxis_labels: Changes the x-tick labels by cutting them short.
+- get_sankey: Creates a Sankey diagram using Plotly.
 
 Constants:
 - PLOT_FACE_COLOR: The face color for the plot.
@@ -21,8 +25,9 @@ TODO: returns should be plt.figure and not pn.pane.Matplotlib, as already
 implemented for beta_plot_pc() function.
 """
 
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 from textwrap import fill
+import numpy as np
 import panel as pn
 import pandas as pd
 
@@ -30,6 +35,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import holoviews as hv
+import hvplot.pandas  # noqa
+
+from bokeh.models import CategoricalColorMapper
+from bokeh.palettes import Category20, viridis
 
 from skbio.stats.ordination import pcoa
 from .diversity import (
@@ -40,6 +49,53 @@ from .diversity import (
 PLOT_FACE_COLOR = "#e6e6e6"
 
 
+##########
+# HVplot #
+##########
+def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
+    """
+    Creates a horizontal bar plot for alpha diversity using hvplot.
+
+    Args:
+        alpha (pd.DataFrame): DataFrame containing alpha diversity data.
+        factor (str): The column name to group by.
+
+    Returns:
+        hv.element.Bars: A horizontal bar plot of alpha diversity.
+    """
+    # Define the color mapper using Bokeh's CategoricalColorMapper
+    if len(alpha[factor].unique()) <= 20:
+        pal = Category20[len(alpha[factor].unique())]  # Use the correct number of colors
+    else:
+        pal = viridis(len(alpha[factor].unique()))
+    
+    color_mapper = CategoricalColorMapper(
+        factors=alpha[factor].unique().tolist(),  # Unique categories in the factor column
+        palette=pal,
+    )
+
+    # Create the horizontal bar plot using hvplot
+    plot = alpha.hvplot.barh(
+        x="ref_code",
+        y="Shannon",
+        xlabel="Sample",
+        ylabel="Shannon Index",
+        title=f"Alpha Diversity ({factor})",
+        color=factor,  # Use the factor column for coloring
+    ).opts(
+        yticks=0,  # remove xticks labels
+        xaxis="top",
+        cmap=color_mapper.palette,  # Apply the color mapper's palette
+        legend_position="top_right",  # Adjust legend position
+        tools=["hover"],  # Add hover tool for interactivity
+        backend_opts={"plot.toolbar.autohide": True},
+    )
+    return plot
+
+
+##############
+# Matplotlib #
+##############
 def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
     """
     Plots a PCoA plot with optional coloring.
@@ -108,7 +164,7 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
     Returns:
         plt.Figure: The Shannon index plot.
     """
-    alpha_df = alpha_df.sort_values(by=factor)
+    # alpha_df = alpha_df.sort_values(by=factor)
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     plot.patch.set_facecolor(PLOT_FACE_COLOR)
     labels = fold_legend_labels_from_series(alpha_df[factor], 35)
@@ -124,6 +180,7 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
 
     # check axes and find which is have legend
     ax = change_legend_labels(ax, labels)
+    ax.tick_params(axis='x', which='major', labelsize=np.log(4e5/len(alpha_df)))
 
     ax.set_title(f"Shannon Index Grouped by {factor}")
     ax.set_xlabel("Sample")
@@ -205,14 +262,59 @@ def mpl_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> plt.Figure:
 # Plot for panel #
 ##################
 # Alpha diversity
+# def alpha_plot(
+#     tables_dict: Dict[str, pd.DataFrame],
+#     table_name: str,
+#     factor: str,
+#     metadata: pd.DataFrame,
+#     debug: bool = False,
+#     backend: str = "matplotlib",
+# ) -> pn.pane.Matplotlib:
+#     """
+#     Creates an alpha diversity plot.
+
+#     Args:
+#         tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
+#         table_name (str): The name of the table to process.
+#         factor (str): The column name to group by.
+#         metadata (pd.DataFrame): A DataFrame containing metadata.
+
+#     Returns:
+#         pn.pane.Matplotlib: A Matplotlib pane containing the alpha diversity plot.
+#     """
+#     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
+#     if debug:
+#         print(alpha)
+
+#     if backend == "matplotlib":
+#         fig = pn.pane.Matplotlib(
+#             mpl_alpha_diversity(alpha, factor=factor),
+#             sizing_mode="stretch_both",
+#             name="Alpha div",
+#         )
+#     elif backend == "hvplot":
+#         plot = alpha.hvplot.bar("ref_code", "Shannon", by=factor).opts(
+#             xlabel="Sample",
+#             ylabel="Shannon Index",
+#             title=f"Alpha Diversity ({factor})",
+#             color=hv.CategoricalColorMapper(
+#                 palette="coolwarm", factors=alpha[factor].unique()
+#             ),
+#         )
+#         fig = pn.pane.HoloViews(
+#             plot, sizing_mode="stretch_both", name="Alpha div", width=800
+#         )
+#     return fig
+
 def alpha_plot(
     tables_dict: Dict[str, pd.DataFrame],
     table_name: str,
     factor: str,
     metadata: pd.DataFrame,
+    order: str = "factor",  # or value
     debug: bool = False,
-    backend: str = "matplotlib",
-) -> pn.pane.Matplotlib:
+    backend: str = "hvplot",  # Options: "matplotlib" or "hvplot"
+) -> Union[pn.pane.Matplotlib, pn.pane.HoloViews]:
     """
     Creates an alpha diversity plot.
 
@@ -221,11 +323,22 @@ def alpha_plot(
         table_name (str): The name of the table to process.
         factor (str): The column name to group by.
         metadata (pd.DataFrame): A DataFrame containing metadata.
+        order (str): The order of sorting the data. Can be "factor" or "value".
+        debug (bool): If True, prints debug information.
+        backend (str): The plotting backend to use. Can be "matplotlib" or "hvplot".
 
     Returns:
-        pn.pane.Matplotlib: A Matplotlib pane containing the alpha diversity plot.
+        Union[pn.pane.Matplotlib, pn.pane.HoloViews]: A pane containing the alpha diversity plot.
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
+    #sort by factor
+    if order == "Factor":
+        alpha = alpha.sort_values(by=factor)
+    elif order == "Values":
+        alpha = alpha.sort_values(by="Shannon")
+    else:
+        raise ValueError(f"Unknown order: {order}")
+
     if debug:
         print(alpha)
 
@@ -236,17 +349,14 @@ def alpha_plot(
             name="Alpha div",
         )
     elif backend == "hvplot":
-        plot = alpha.hvplot.bar("ref_code", "Shannon", by=factor).opts(
-            xlabel="Sample",
-            ylabel="Shannon Index",
-            title=f"Alpha Diversity ({factor})",
-            color=hv.CategoricalColorMapper(
-                palette="coolwarm", factors=alpha[factor].unique()
-            ),
-        )
         fig = pn.pane.HoloViews(
-            plot, sizing_mode="stretch_both", name="Alpha div", width=800
+            hvplot_alpha_diversity(alpha, factor=factor),
+            name="Alpha div",
+            width=900,
+            height=1500,
         )
+    else:
+        raise ValueError(f"Unknown backend: {backend}")
     return fig
 
 
