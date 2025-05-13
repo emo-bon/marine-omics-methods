@@ -262,50 +262,6 @@ def mpl_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> plt.Figure:
 # Plot for panel #
 ##################
 # Alpha diversity
-# def alpha_plot(
-#     tables_dict: Dict[str, pd.DataFrame],
-#     table_name: str,
-#     factor: str,
-#     metadata: pd.DataFrame,
-#     debug: bool = False,
-#     backend: str = "matplotlib",
-# ) -> pn.pane.Matplotlib:
-#     """
-#     Creates an alpha diversity plot.
-
-#     Args:
-#         tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
-#         table_name (str): The name of the table to process.
-#         factor (str): The column name to group by.
-#         metadata (pd.DataFrame): A DataFrame containing metadata.
-
-#     Returns:
-#         pn.pane.Matplotlib: A Matplotlib pane containing the alpha diversity plot.
-#     """
-#     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
-#     if debug:
-#         print(alpha)
-
-#     if backend == "matplotlib":
-#         fig = pn.pane.Matplotlib(
-#             mpl_alpha_diversity(alpha, factor=factor),
-#             sizing_mode="stretch_both",
-#             name="Alpha div",
-#         )
-#     elif backend == "hvplot":
-#         plot = alpha.hvplot.bar("ref_code", "Shannon", by=factor).opts(
-#             xlabel="Sample",
-#             ylabel="Shannon Index",
-#             title=f"Alpha Diversity ({factor})",
-#             color=hv.CategoricalColorMapper(
-#                 palette="coolwarm", factors=alpha[factor].unique()
-#             ),
-#         )
-#         fig = pn.pane.HoloViews(
-#             plot, sizing_mode="stretch_both", name="Alpha div", width=800
-#         )
-#     return fig
-
 def alpha_plot(
     tables_dict: Dict[str, pd.DataFrame],
     table_name: str,
