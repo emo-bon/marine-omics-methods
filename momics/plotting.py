@@ -119,8 +119,7 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
         yticks=0,  # remove yticks labels
         xaxis="top",
         cmap=color_mapper.palette,  # Apply the color mapper's palette
-        # legend_position="top_right",  # Adjust legend position
-        legend_position='outer',
+        legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
         backend_opts={"plot.toolbar.autohide": True},
     )
