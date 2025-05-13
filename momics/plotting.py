@@ -491,8 +491,8 @@ def av_alpha_plot(
         fig = pn.pane.HoloViews(
             hvplot_average_per_factor(alpha, factor=factor),
             name="AV Alpha div",
-            # sizing_mode="stretch_both",
-            width=1000,
+            sizing_mode="stretch_both",
+            # width=1000,
             height=600,
         )
     else:
@@ -540,49 +540,6 @@ def beta_plot(
         raise ValueError(f"Unknown backend: {backend}")
     return fig
 
-
-# I refactored to the holoviews completely.
-# def beta_plot_pc(
-#     tables_dict: Dict[str, pd.DataFrame],
-#     metadata: pd.DataFrame,
-#     table_name: str,
-#     factor: str,
-#     taxon: str = "ncbi_tax_id",
-#     backend: str = "hvplot",  # Options: "matplotlib" or "hvplot"
-# ) -> Tuple[Union[plt.figure, hv.element.Scatter], float]:
-#     """
-#     Creates a beta diversity PCoA plot.
-
-#     Args:
-#         tables_dict (Dict[str, pd.DataFrame]): A dictionary of DataFrames containing species abundances.
-#         metadata (pd.DataFrame): A DataFrame containing metadata.
-#         table_name (str): The name of the table to process.
-#         factor (str): The column name to color the points by.
-#         taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
-#         backend (str): The plotting backend to use. Can be "matplotlib" or "hvplot".
-
-#     Returns:
-#         Tuple[Union[plt.figure, hv.element.Scatter], float]: A tuple containing the beta diversity PCoA plot and the explained variance.
-#     """
-#     beta = beta_diversity_parametrized(
-#         tables_dict[table_name], taxon=taxon, metric="braycurtis"
-#     )
-#     pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
-#     explained_variance = pcoa_result.proportion_explained[:2].sum() * 100
-#     pcoa_df = pd.merge(
-#         pcoa_result.samples,
-#         metadata,
-#         left_index=True,
-#         right_on="ref_code",
-#         how="inner",
-#     )
-#     if backend == "matplotlib":
-#         fig = plot_pcoa_black(pcoa_df, color_by=factor)
-#     elif backend == "hvplot":
-#         fig = hvplot_plot_pcoa_black(pcoa_df, color_by=factor)
-#     else:
-#         raise ValueError(f"Unknown backend: {backend}")
-#     return fig, explained_variance
 
 def beta_plot_pc(
     tables_dict: Dict[str, pd.DataFrame],
