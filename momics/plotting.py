@@ -531,16 +531,33 @@ def hvplot_plot_pcoa_black(
 
     # percentage of valid values
     perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
-    # Create the scatter plot using hvplot
-    fig = pcoa_df.hvplot.scatter(
-        x="PC1",
-        y="PC2",
-        xlabel="PC1",
-        ylabel="PC2",
-        title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
-        color=color_by,  # Use the factor column for coloring
-    ).opts(
-        cmap=color_mapper.palette,  # Apply the color mapper's palette
+    if color_by is not None:
+        # Create the scatter plot using hvplot
+        fig = pcoa_df.hvplot.scatter(
+            x="PC1",
+            y="PC2",
+            xlabel="PC1",
+            ylabel="PC2",
+            title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+            color=color_by,  # Use the factor column for coloring
+        )
+        # .opts(
+        #     cmap=color_mapper.palette,  # Apply the color mapper's palette
+        #     legend_position="top_right",  # Adjust legend position
+        #     tools=["hover"],  # Add hover tool for interactivity
+        #     backend_opts={"fig.toolbar.autohide": True},
+        # )
+    else:
+        fig = pcoa_df.hvplot.scatter(
+            x="PC1",
+            y="PC2",
+            xlabel="PC1",
+            ylabel="PC2",
+            title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+            color=color_by if color_by is not None else "black",  # Use color_by or black for coloring
+        )
+    fig = fig.opts(
+        cmap=color_mapper.palette if color_by is not None else None,  # Apply the color mapper's palette if available
         legend_position="top_right",  # Adjust legend position
         tools=["hover"],  # Add hover tool for interactivity
         backend_opts={"fig.toolbar.autohide": True},
