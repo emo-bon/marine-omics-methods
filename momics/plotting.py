@@ -501,7 +501,7 @@ def beta_plot_pc(
     if backend == "matplotlib":
         fig = plot_pcoa_black(pcoa_df, color_by=factor)
     elif backend == "hvplot":
-        fig = plot_pcoa_black(pcoa_df, color_by=factor)
+        fig = hvplot_plot_pcoa_black(pcoa_df, color_by=factor)
     else:
         raise ValueError(f"Unknown backend: {backend}")
     return fig, explained_variance
