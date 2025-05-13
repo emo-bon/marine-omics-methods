@@ -619,64 +619,6 @@ def beta_plot_pc(
     return hvplot_plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
 
 
-def hvplot_plot_pcoa_black(
-    pcoa_df: pd.DataFrame, color_by: str = None
-) -> hv.element.Scatter:
-    """
-    Plots a PCoA plot with optional coloring using hvplot.
-    Args:
-        pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
-        color_by (str, optional): The column name to color the points by. Defaults to None.
-    Returns:
-        hv.element.Scatter: The PCoA plot.
-    """
-    # percentage of valid values
-    perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
-    if color_by is not None:
-        # Define the color mapper using Bokeh's CategoricalColorMapper
-        if len(pcoa_df[color_by].unique()) <= 20:
-            pal = Category20[len(pcoa_df[color_by].unique())]  # Use the correct number of colors
-        else:
-            pal = viridis(len(pcoa_df[color_by].unique()))
-        
-        color_mapper = CategoricalColorMapper(
-            factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
-            palette=pal,
-        )
-
-        # Create the scatter plot using hvplot
-        fig = pcoa_df.hvplot.scatter(
-            x="PC1",
-            y="PC2",
-            xlabel="PC1",
-            ylabel="PC2",
-            title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
-            color=color_by,  # Use the factor column for coloring
-        )
-        # .opts(
-        #     cmap=color_mapper.palette,  # Apply the color mapper's palette
-        #     legend_position="top_right",  # Adjust legend position
-        #     tools=["hover"],  # Add hover tool for interactivity
-        #     backend_opts={"fig.toolbar.autohide": True},
-        # )
-    else:
-        fig = pcoa_df.hvplot.scatter(
-            x="PC1",
-            y="PC2",
-            xlabel="PC1",
-            ylabel="PC2",
-            title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
-            color=color_by if color_by is not None else "black",  # Use color_by or black for coloring
-        )
-    fig = fig.opts(
-        cmap=color_mapper.palette if color_by is not None else None,  # Apply the color mapper's palette if available
-        legend_position="top_right",  # Adjust legend position
-        tools=["hover"],  # Add hover tool for interactivity
-        backend_opts={"plot.toolbar.autohide": True},
-    )
-    return fig
-
-
 def beta_plot_pc_granular(
     filtered_data: pd.DataFrame,
     metadata: pd.DataFrame,
