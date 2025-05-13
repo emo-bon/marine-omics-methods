@@ -149,7 +149,7 @@ def test_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
         data_dict, table_name, factor,
         sample_metadata,
         order=order, backend=backend,
-        debug=True)
+        )
 
     hash_pane = {'matplotlib': pn.pane.Matplotlib, 'hvplot': pn.pane.HoloViews}
     # Check if the result is a panel Matplotlib pane
@@ -205,16 +205,16 @@ def test_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
 
 
 @pytest.mark.parametrize(
-    "table_name, col_to_add",
+    "table_name, col_to_add, order, backend",
     [
-        ("go", "id"),
-        ("go_slim", "id"),
-        ("ips", "accession"),
-        ("ko", "entry"),
-        ("pfam", "entry"),
+        ("go", "id", "factor", "hvplot"),
+        ("go_slim", "id", "factor", "hvplot"),
+        ("ips", "accession", "values", "matplotlib"),
+        ("ko", "entry", "values", "matplotlib"),
+        ("pfam", "entry", "values", "matplotlib"),
     ],
 )
-def test_av_alpha_plot(table_name, col_to_add, sample_metadata):
+def test_av_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
     """
     Tests the av_alpha_plot function.
     """
@@ -223,28 +223,38 @@ def test_av_alpha_plot(table_name, col_to_add, sample_metadata):
     data_dict = {
         table_name: add_column(data_dict[table_name], col_to_add),
     }
-    fig_pane = av_alpha_plot(data_dict, table_name, factor, sample_metadata)
+    fig_pane = av_alpha_plot(
+        data_dict, table_name,
+        factor, sample_metadata,
+        order=order, backend=backend
+    )
 
+    hash_pane = {'matplotlib': pn.pane.Matplotlib, 'hvplot': pn.pane.HoloViews}
     # Check if the result is a panel Matplotlib pane
     assert isinstance(
-        fig_pane, pn.pane.Matplotlib
-    ), "The result should be a panel Matplotlib pane"
+        fig_pane, hash_pane[backend]
+    ), f"The result should be a panel {backend} pane"
 
     # Extract the figure from the pane
     fig = fig_pane.object
 
-    # Check if the result is a matplotlib Figure
-    assert isinstance(fig, plt.Figure), "The result should be a matplotlib Figure"
+    if backend == "hvplot":
+        # Check if the result is a hvplot Figure
+        assert isinstance(fig, hv.element.Bars), "The result should be a hvplot Figure"
+    
+    elif backend == "matplotlib":
+        # Check if the result is a matplotlib Figure
+        assert isinstance(fig, plt.Figure), "The result should be a matplotlib Figure"
 
-    # Check if the plot contains the correct labels and title
-    ax = fig.axes[0]
-    assert ax.get_xlabel() == factor, f"The x-axis label should be '{factor}'"
-    assert (
-        ax.get_ylabel() == "Shannon Index"
-    ), "The y-axis label should be 'Shannon Index'"
-    assert (
-        ax.get_title() == f"Average Shannon Index Grouped by {factor}"
-    ), f"The title should be 'Average Shannon Index Grouped by {factor}'"
+        # Check if the plot contains the correct labels and title
+        ax = fig.axes[0]
+        assert ax.get_xlabel() == factor, f"The x-axis label should be '{factor}'"
+        assert (
+            ax.get_ylabel() == "Shannon Index"
+        ), "The y-axis label should be 'Shannon Index'"
+        assert (
+            ax.get_title() == f"Average Shannon Index Grouped by {factor}"
+        ), f"The title should be 'Average Shannon Index Grouped by {factor}'"
 
     # TODO: learn the calculations and design simple enough example data
     # TODO: treat nans and zeros et.

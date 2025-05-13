@@ -93,6 +93,47 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
     return plot
 
 
+def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
+    """
+    Creates a horizontal bar plot for alpha diversity using hvplot.
+
+    Args:
+        alpha (pd.DataFrame): DataFrame containing alpha diversity data.
+        factor (str): The column name to group by.
+
+    Returns:
+        hv.element.Bars: A horizontal bar plot of alpha diversity.
+    """
+    # Define the color mapper using Bokeh's CategoricalColorMapper
+    if len(alpha[factor].unique()) <= 20:
+        pal = Category20[len(alpha[factor].unique())]  # Use the correct number of colors
+    else:
+        pal = viridis(len(alpha[factor].unique()))
+    
+    color_mapper = CategoricalColorMapper(
+        factors=alpha[factor].unique().tolist(),  # Unique categories in the factor column
+        palette=pal,
+    )
+
+    # Create the horizontal bar plot using hvplot
+    plot = alpha.hvplot.barh(
+        x=factor,
+        y="Shannon",
+        xlabel=factor,
+        ylabel="Shannon Index",
+        title=f"Average Shannon Index Grouped by {factor}",
+        color=factor,  # Use the factor column for coloring
+    ).opts(
+        yticks=0,  # remove xticks labels
+        xaxis="top",
+        cmap=color_mapper.palette,  # Apply the color mapper's palette
+        legend_position="top_right",  # Adjust legend position
+        tools=["hover"],  # Add hover tool for interactivity
+        backend_opts={"plot.toolbar.autohide": True},
+    )
+    return plot
+
+
 ##############
 # Matplotlib #
 ##############
@@ -164,7 +205,6 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
     Returns:
         plt.Figure: The Shannon index plot.
     """
-    # alpha_df = alpha_df.sort_values(by=factor)
     plot = plt.figure(figsize=(10, 6), facecolor=(0, 0, 0, 0))
     plot.patch.set_facecolor(PLOT_FACE_COLOR)
     labels = fold_legend_labels_from_series(alpha_df[factor], 35)
@@ -220,6 +260,7 @@ def mpl_average_per_factor(df: pd.DataFrame, factor: str = None) -> plt.Figure:
     ax.set_ylabel("Shannon Index")
     ax = cut_xaxis_labels(ax, 15)
 
+    plt.xticks(rotation=90)
     plt.tight_layout()
     plt.close(plot)
     return plot
@@ -268,7 +309,6 @@ def alpha_plot(
     factor: str,
     metadata: pd.DataFrame,
     order: str = "factor",  # or values
-    debug: bool = False,
     backend: str = "hvplot",  # Options: "matplotlib" or "hvplot"
 ) -> Union[pn.pane.Matplotlib, pn.pane.HoloViews]:
     """
@@ -280,23 +320,14 @@ def alpha_plot(
         factor (str): The column name to group by.
         metadata (pd.DataFrame): A DataFrame containing metadata.
         order (str): The order of sorting the data. Can be "factor" or "value".
-        debug (bool): If True, prints debug information.
         backend (str): The plotting backend to use. Can be "matplotlib" or "hvplot".
 
     Returns:
         Union[pn.pane.Matplotlib, pn.pane.HoloViews]: A pane containing the alpha diversity plot.
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
-    #sort by factor
-    if order == "factor":
-        alpha = alpha.sort_values(by=factor)
-    elif order == "values":
-        alpha = alpha.sort_values(by="Shannon")
-    else:
-        raise ValueError(f"Unknown order: {order}")
-
-    if debug:
-        print(alpha)
+    hash_sort = {'factor': factor, 'values': 'Shannon'}
+    alpha = alpha.sort_values(by=hash_sort[order])
 
     if backend == "matplotlib":
         fig = pn.pane.Matplotlib(
@@ -321,7 +352,9 @@ def av_alpha_plot(
     table_name: str,
     factor: str,
     metadata: pd.DataFrame,
-) -> pn.pane.Matplotlib:
+    order: str = "factor",  # or values
+    backend: str = "hvplot",  # Options: "matplotlib" or "hvplot"
+) -> Union[pn.pane.Matplotlib, pn.pane.HoloViews]:
     """
     Creates an average alpha diversity plot.
 
@@ -332,14 +365,28 @@ def av_alpha_plot(
         metadata (pd.DataFrame): A DataFrame containing metadata.
 
     Returns:
-        pn.pane.Matplotlib: A Matplotlib pane containing the average alpha diversity plot.
+        Union[pn.pane.Matplotlib, pn.pane.HoloViews]: A pane containing the average alpha diversity plot.
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
-    fig = pn.pane.Matplotlib(
-        mpl_average_per_factor(alpha, factor=factor),
-        sizing_mode="stretch_both",
-        name="AV Alpha div",
-    )
+    # TODO: this will not work, because it gets grouped in mpl_average_per_factor I think
+    hash_sort = {'factor': factor, 'values': 'Shannon'}
+    alpha = alpha.sort_values(by=hash_sort[order])
+
+    if backend == "matplotlib":
+        fig = pn.pane.Matplotlib(
+            mpl_average_per_factor(alpha, factor=factor),
+            sizing_mode="stretch_both",
+            name="AV Alpha div",
+        )
+    elif backend == "hvplot":
+        fig = pn.pane.HoloViews(
+            hvplot_average_per_factor(alpha, factor=factor),
+            name="AV Alpha div",
+            width=900,
+            height=1500,
+        )
+    else:
+        raise ValueError(f"Unknown backend: {backend}")
     return fig
 
 
