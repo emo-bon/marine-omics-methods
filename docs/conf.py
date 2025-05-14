@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path("..").resolve()))
 project = "MOmics"
 copyright = "2025, David Palecek"
 author = "David Palecek"
-release = "0.0.1"
+release = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
