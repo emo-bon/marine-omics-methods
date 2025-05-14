@@ -97,7 +97,7 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
         hv.element.Bars: A horizontal bar plot of alpha diversity.
     """
     # Define the color mapper using Bokeh's CategoricalColorMapper
-    if len(alpha[factor].unique()) <= 20:
+    if 2 < len(alpha[factor].unique()) <= 20:
         pal = Category20[len(alpha[factor].unique())]  # Use the correct number of colors
     else:
         pal = viridis(len(alpha[factor].unique()))
@@ -166,20 +166,103 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
     return fig
 
 
+# def hvplot_plot_pcoa_black(
+#     pcoa_df: pd.DataFrame, color_by: str = None
+# ) -> hv.element.Scatter:
+#     """
+#     Plots a PCoA plot with optional coloring using hvplot.
+#     Args:
+#         pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
+#         color_by (str, optional): The column name to color the points by. Defaults to None.
+#     Returns:
+#         hv.element.Scatter: The PCoA plot.
+#     """
+#     perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
+
+#     if len(pcoa_df[color_by].unique()) <= 20:
+#         if pcoa_df[color_by].dtype == "object":
+#             pal = Category20[len(pcoa_df[color_by].unique())]  # Use the correct number of colors
+#             color_mapper = CategoricalColorMapper(
+#                 factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
+#                 palette=pal,
+#             )
+#         else:
+#             color_mapper = ContinuousColorMapper(
+#                 palette="Turbo256",
+#                 low=pcoa_df[color_by].min(),
+#                 high=pcoa_df[color_by].max(),
+#             )
+#     else:
+#         if pcoa_df[color_by].dtype == "object":
+#             pal = viridis(len(pcoa_df[color_by].unique()))
+#             color_mapper = CategoricalColorMapper(
+#                 factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
+#                 palette=pal,
+#             )
+#         else:
+#             color_mapper = ContinuousColorMapper(
+#                 palette="Turbo256",
+#                 low=pcoa_df[color_by].min(),
+#                 high=pcoa_df[color_by].max(),
+#             )
+
+
+#     if pcoa_df[color_by].count() >= 0:
+#         # Create the scatter plot using hvplot
+#         fig = pcoa_df.hvplot.scatter(
+#             x="PC1",
+#             y="PC2",
+#             xlabel="PC1",
+#             ylabel="PC2",
+#             title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+#             size=64,
+#             fill_alpha=0.5,
+#             color=color_by,  # Use the factor column for coloring
+#         )
+#         try:
+#             fig = fig.opts(
+#                 cmap=color_mapper.palette if color_mapper else viridis(1),  # Apply the color mapper's palette
+#                 # legend_position="top_right",  # Adjust legend position
+#                 show_legend=False,
+#                 tools=["hover"],  # Add hover tool for interactivity
+#                 backend_opts={"plot.toolbar.autohide": True},
+#             )
+#         except Exception as e:
+#             print(f"Error updating plot options: {e}")
+#     else:
+#         fig = pcoa_df.hvplot.scatter(
+#             x="PC1",
+#             y="PC2",
+#             xlabel="PC1",
+#             ylabel="PC2",
+#             title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+#             color="black",  # Use color_by or black for coloring
+#             size=64,
+#             fill_alpha=0.5,
+#         ).opts(
+#             show_legend=False,
+#             tools=["hover"],  # Add hover tool for interactivity
+#             backend_opts={"plot.toolbar.autohide": True},
+#         )
+
+#     return fig
+
 def hvplot_plot_pcoa_black(
     pcoa_df: pd.DataFrame, color_by: str = None
 ) -> hv.element.Scatter:
     """
     Plots a PCoA plot with optional coloring using hvplot.
+
     Args:
         pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
         color_by (str, optional): The column name to color the points by. Defaults to None.
+    
     Returns:
         hv.element.Scatter: The PCoA plot.
     """
     perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
 
-    if len(pcoa_df[color_by].unique()) <= 20:
+    if 2 < len(pcoa_df[color_by].unique()) <= 20:
         if pcoa_df[color_by].dtype == "object":
             pal = Category20[len(pcoa_df[color_by].unique())]  # Use the correct number of colors
             color_mapper = CategoricalColorMapper(
@@ -212,38 +295,36 @@ def hvplot_plot_pcoa_black(
         fig = pcoa_df.hvplot.scatter(
             x="PC1",
             y="PC2",
-            xlabel="PC1",
-            ylabel="PC2",
-            title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+            # xlabel="PC1",
+            # ylabel="PC2",
+            # title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
             size=64,
             fill_alpha=0.5,
             color=color_by,  # Use the factor column for coloring
         )
-        try:
-            fig = fig.opts(
-                cmap=color_mapper.palette if color_mapper else viridis(1),  # Apply the color mapper's palette
-                # legend_position="top_right",  # Adjust legend position
-                show_legend=False,
-                tools=["hover"],  # Add hover tool for interactivity
-                backend_opts={"plot.toolbar.autohide": True},
-            )
-        except Exception as e:
-            print(f"Error updating plot options: {e}")
+
     else:
         fig = pcoa_df.hvplot.scatter(
             x="PC1",
             y="PC2",
-            xlabel="PC1",
-            ylabel="PC2",
-            title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+            # xlabel="PC1",
+            # ylabel="PC2",
+            # title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
             color="black",  # Use color_by or black for coloring
             size=64,
             fill_alpha=0.5,
-        ).opts(
-            show_legend=False,
-            tools=["hover"],  # Add hover tool for interactivity
-            backend_opts={"plot.toolbar.autohide": True},
         )
+
+    fig = fig.opts(
+        cmap=color_mapper.palette, #if color_mapper else viridis(1),  # Apply the color mapper's palette
+        title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+        xlabel="PC1",
+        ylabel="PC2",
+        # legend_position="top_right",  # Adjust legend position
+        show_legend=False,
+        tools=["hover"],  # Add hover tool for interactivity
+        backend_opts={"plot.toolbar.autohide": True},
+    )
 
     return fig
 
@@ -598,7 +679,7 @@ def beta_plot_pc_granular(
         Tuple[plt.figure, float]: A tuple containing the beta diversity PCoA plot and the explained variance.
     """
     from skbio.diversity import beta_diversity
-    # print(tables_dict[table_name].head())
+
     beta = beta_diversity("braycurtis", filtered_data.iloc[:, 1:].T)
     pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
     explained_variance = pcoa_result.proportion_explained[:2].sum() * 100
