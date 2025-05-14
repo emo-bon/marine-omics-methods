@@ -33,6 +33,12 @@ Taxonomy module
     :members:
     :show-inheritance:
 
+Galaxy integration
+----------------------
+.. automodule:: momics.galaxy
+    :members:
+    :show-inheritance:
+
 Utilities of all sorts
 ------------------------
 

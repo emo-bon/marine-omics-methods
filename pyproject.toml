@@ -1,6 +1,6 @@
 [project]
 name = "momics"
-version = "0.1.0"
+version = "0.1.1"
 license = { file = "LICENSE.txt" }
 description = "Utilities for metagoflow and marine omics"
 maintainers = [
