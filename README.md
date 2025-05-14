@@ -3,7 +3,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![tests](https://github.com/palec87/marine-omics/workflows/tests/badge.svg)](https://github.com/palec87/marine-omics/actions)
 [![codecov](https://codecov.io/gh/emo-bon/marine-omics-methods/branch/main/graph/badge.svg)](https://codecov.io/gh/emo-bon/marine-omics-methods)
-[![Read the Docs](https://img.shields.io/readthedocs/marine-omics)](https://marine-omics.readthedocs.io/en/latest/)
+[![Read the Docs](https://img.shields.io/readthedocs/marine-omics)](https://marine-omics-methods.readthedocs.io/en/latest/)
 
 Package of utilities for FAIR-Ease demo pipelines.
 
