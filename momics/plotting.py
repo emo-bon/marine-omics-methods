@@ -404,6 +404,51 @@ def mpl_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> plt.Figure:
     return fig
 
 
+def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
+    """
+    Creates a violin plot for BGC probabilities by type using hvplot.
+
+    Args:
+        df (pd.DataFrame): A DataFrame containing BGC data with columns 'type', 'average_p', and 'max_p'.
+        normalize (bool): Whether to normalize the y-axis to the range [0, 1].
+
+    Returns:
+        hv.Overlay: An overlay of swarm and violin plots.
+    """
+    df['type'] = df['type'].fillna('Unknown')
+
+    # Create the swarm plot
+    swarm = df.hvplot.scatter(
+        x="type",
+        y="average_p",
+        c="max_p",
+        size=7,
+        cmap="coolwarm",
+        colorbar=True,
+        title="Probabilities of identified BGCs by type",
+        xlabel="BGC type",
+        ylabel="Average probability",
+        tools=["hover"]
+    )
+
+    # Create the violin plot
+    violin = df.hvplot.violin(
+        x="type",
+        y="average_p",
+        color="black",
+        inner=None,
+        line_width=1
+    )
+
+    # Combine the swarm and violin plots
+    combined = violin * swarm
+
+    # Apply normalization if needed
+    if normalize:
+        combined = combined.opts(yaxis="log", ylim=(-0.1, 1.1))
+
+    return combined
+
 ##################
 # Plot for panel #
 ##################
