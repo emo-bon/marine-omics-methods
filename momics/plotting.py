@@ -229,7 +229,7 @@ def hvplot_plot_pcoa_black(
         xlabel="PC1",
         ylabel="PC2",
         title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
-        size=124,
+        size=72,
         fill_alpha=0.5,
         # legend_position="top_right",  # Adjust legend position
         show_legend=False,
