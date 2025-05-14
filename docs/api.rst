@@ -27,6 +27,12 @@ Plotting module
     :members:
     :show-inheritance:
 
+Taxonomy module
+------------------
+.. automodule:: momics.taxonomy
+    :members:
+    :show-inheritance:
+
 Utilities of all sorts
 ------------------------
 

@@ -2,10 +2,18 @@
 installation
 ********************
 
-currently clone and pip installation
+Install momics from github
 
+```python
+pip install "momics @ git+https://github.com/emo-bon/marine-omics-methods.git@main"
 ```
-git clone ....
+
+Or clone and pip install locally
+
+```python
+git clone https://github.com/emo-bon/marine-omics-methods.git
+cd marine-omics-methods
 pip install -e .
 ```
+
 
