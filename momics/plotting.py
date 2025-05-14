@@ -496,8 +496,6 @@ def av_alpha_plot(
             hvplot_average_per_factor(alpha, factor=factor),
             sizing_mode="stretch_both",
             name="AV Alpha div",
-            # width=1300,
-            # height=600,
         )
     else:
         raise ValueError(f"Unknown backend: {backend}")
@@ -585,7 +583,7 @@ def beta_plot_pc_granular(
     metadata: pd.DataFrame,
     factor: str,
     # taxon: str = "ncbi_tax_id",
-) -> Tuple[plt.figure, float]:
+) -> Tuple[hv.element.Scatter, float]:
     """
     Creates a beta diversity PCoA plot.
 
@@ -612,7 +610,8 @@ def beta_plot_pc_granular(
         how="inner",
     )
 
-    return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
+    # return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
+    return hvplot_plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
 
 
 def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:
