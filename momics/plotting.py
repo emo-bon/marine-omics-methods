@@ -422,7 +422,7 @@ def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
         x="type",
         y="average_p",
         c="max_p",
-        size=7,
+        size=57,
         cmap="coolwarm",
         colorbar=True,
         title="Probabilities of identified BGCs by type",
@@ -433,11 +433,14 @@ def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
 
     # Create the violin plot
     violin = df.hvplot.violin(
-        x="type",
+        # x="type",
         y="average_p",
-        color="black",
-        inner=None,
-        line_width=1
+        by='type',
+    ).opts(
+        violin_fill_color=PLOT_FACE_COLOR,
+        violin_alpha=0.5,
+        violin_line_width=0.2,
+        violin_visible=True,
     )
 
     # Combine the swarm and violin plots
@@ -449,6 +452,65 @@ def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
 
     return combined
 
+
+def plot_domain_abundance(filtered_domains: pd.Series, abundance_min: int) -> hv.element.Bars:
+    """
+    Plot the histogram of the number of pfam domains from the feature table using hvplot.
+
+    Args:
+        filtered_domains (pd.Series): A Series containing domain names as the index and their abundances as values.
+        abundance_min (int): The minimum abundance threshold for domains to be included in the plot.
+
+    Returns:
+        hv.element.Bars: A horizontal bar plot of domain abundances.
+    """
+    plot = filtered_domains.hvplot.bar(
+        xlabel="Domain",
+        ylabel="Abundance",
+        title=f"Domain Abundance (at least {abundance_min})",
+        height=600,
+        width=1400,
+        cmap="viridis",
+        tools=["hover"],
+    ).opts(
+        xticks=0,  # Remove xtick labels if too many
+        show_legend=False,
+    )
+    return plot
+
+
+def plot_tsne(X_embedded: np.ndarray, kmeans) -> hv.element.Scatter:
+    """
+    Plot the t-SNE embedding of the clusters using hvplot.
+
+    Args:
+        X_embedded (np.ndarray): The t-SNE embedded coordinates.
+        kmeans: The fitted KMeans object containing cluster labels.
+
+    Returns:
+        hv.element.Scatter: The t-SNE plot of domain clusters.
+    """
+    # Create a DataFrame for hvplot
+    tsne_df = pd.DataFrame({
+        "t-SNE 1": X_embedded[:, 0],
+        "t-SNE 2": X_embedded[:, 1],
+        "Cluster": kmeans.labels_
+    })
+
+    # Create the scatter plot using hvplot
+    plot = tsne_df.hvplot.scatter(
+        x="t-SNE 1",
+        y="t-SNE 2",
+        c="Cluster",
+        cmap="viridis",
+        colorbar=True,
+        size=50,
+        title="t-SNE of Domain Clusters",
+        xlabel="t-SNE 1",
+        ylabel="t-SNE 2",
+        tools=["hover"]
+    )
+    return plot
 ##################
 # Plot for panel #
 ##################
