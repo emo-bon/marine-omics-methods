@@ -47,6 +47,7 @@ from .diversity import (
 )
 
 PLOT_FACE_COLOR = "#e6e6e6"
+MARKER_SIZE = 16
 
 
 ##########
@@ -229,7 +230,7 @@ def hvplot_plot_pcoa_black(
         xlabel="PC1",
         ylabel="PC2",
         title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
-        size=24,
+        size=MARKER_SIZE,
         fill_alpha=0.5,
         # legend_position="top_right",  # Adjust legend position
         show_legend=False,
@@ -422,7 +423,7 @@ def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
         x="type",
         y="average_p",
         c="max_p",
-        size=24,
+        size=MARKER_SIZE,
         cmap="coolwarm",
         colorbar=True,
         title="Probabilities of identified BGCs by type",
@@ -504,7 +505,7 @@ def plot_tsne(X_embedded: np.ndarray, kmeans) -> hv.element.Scatter:
         c="Cluster",
         cmap="viridis",
         colorbar=True,
-        size=24,
+        size=MARKER_SIZE,
         title="t-SNE of Domain Clusters",
         xlabel="t-SNE 1",
         ylabel="t-SNE 2",
