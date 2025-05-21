@@ -9,22 +9,26 @@ This is the API documentation for the momics package
 Loading module
 ==================
 
-    Parquet data
-    -----------------
-    .. automodule:: momics.loader.parquets
-        :members:
-        :show-inheritance:
+Parquet data
+-----------------
 
-    Ro-crates
-    -----------------
-    .. automodule:: momics.loader.ro_crates
-        :members:
-        :show-inheritance:
-    Utils
-    -----------------
-    .. automodule:: momics.loader.utils
-        :members:
-        :show-inheritance:
+.. automodule:: momics.loader.parquets
+    :members:
+    :show-inheritance:
+
+Ro-crates
+-----------------
+
+.. automodule:: momics.loader.ro_crates
+    :members:
+    :show-inheritance:
+
+Utils
+-----------------
+
+.. automodule:: momics.loader.utils
+    :members:
+    :show-inheritance:
 
 
 Diversity module
