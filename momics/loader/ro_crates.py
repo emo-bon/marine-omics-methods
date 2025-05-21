@@ -48,8 +48,6 @@ def extract_data_by_name(metadata: Dict, name: str) -> Dict:
     """
     for d in metadata['@graph']:
         if 'name' in d.keys() and d['name'] == name:
-            # data = d
-            # break
             return d
     return None
 
