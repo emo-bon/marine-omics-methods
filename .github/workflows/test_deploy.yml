@@ -50,7 +50,7 @@ jobs:
         # with:
           # token: ${{ secrets.CODECOV_TOKEN }}
 
-  deploy:
+  # deploy:
     # this will run when you have tagged a commit, starting with "v*"
     # and requires that you have put your twine API key in your
     # github secrets (see readme for details)
