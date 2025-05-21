@@ -35,3 +35,48 @@ def get_rocrate_data(metadata_json: Dict, data_id: str):
         str: The content of the data file.
     """
     raise NotImplementedError
+
+
+def extract_data_by_name(metadata: Dict, name: str) -> Dict:
+    """
+    Extracts data from metadata based on the name.
+    Args:
+        metadata (Dict): The metadata in JSON format.
+        name (str): The name of the data to extract.
+    Returns:
+        Dict: The extracted data.
+    """
+    for d in metadata['@graph']:
+        if 'name' in d.keys() and d['name'] == name:
+            # data = d
+            # break
+            return d
+    return None
+
+
+def extract_all_datafiles(metadata: Dict) -> list:
+    """
+    Extracts all data files from the metadata.
+    Args:
+        metadata (Dict): The metadata in JSON format.
+    Returns:
+        List[Dict]: A list of dictionaries containing data file information.
+    """
+    datafiles = []
+    for d in metadata['@graph']:
+        if 'name' in d.keys() and d['@type'] == 'File':
+            data_unit = {}
+            data_unit['name'] = d['name']
+            try:
+                # in MB
+                data_unit['sizeMB'] = int(int(d['contentSize'])/1e6)
+            except KeyError:
+                data_unit['sizeMB'] = 'unknown'
+
+            try:
+                data_unit['downloadUrl'] = d['downloadUrl']
+            except KeyError:
+                data_unit['downloadUrl'] = 'unknown'
+            datafiles.append(data_unit)
+            
+    return datafiles
