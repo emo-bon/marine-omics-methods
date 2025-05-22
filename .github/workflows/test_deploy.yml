@@ -53,6 +53,8 @@ jobs:
   build:
     name: Build distribution 📦
     runs-on: ubuntu-latest
+    needs:
+    - test
 
     steps:
     - uses: actions/checkout@v4
@@ -95,7 +97,7 @@ jobs:
         name: python-package-distributions
         path: dist/
     - name: Publish distribution to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v0.1.2
+      uses: pypa/gh-action-pypi-publish@release/v1
 
   # deploy-to-pypi:
   #   # this will run when you have tagged a commit, starting with "v*"
