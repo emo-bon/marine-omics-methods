@@ -1,5 +1,5 @@
 ****************************************************
-Marine omics (MOmics) documentation
+Marine omics methods
 ****************************************************
 
 .. toctree::

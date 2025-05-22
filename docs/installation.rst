@@ -2,7 +2,7 @@
 installation
 ********************
 
-Install momics from github
+Install marine-omics-methods from github
 
 .. code-block:: bash
 

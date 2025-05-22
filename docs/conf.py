@@ -13,7 +13,7 @@ from pathlib import Path
 # sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, str(Path("..").resolve()))
 
-project = "marine-omics-methods"
+project = "marine-omics"
 copyright = "2025, David Palecek"
 author = "David Palecek"
 release = "0.1.2"

@@ -1,8 +1,8 @@
 [project]
-name = "momics"
+name = "marine-omics"
 version = "0.1.2"
 license = { file = "LICENSE.txt" }
-description = "Utilities for metagoflow and marine omics"
+description = "Utilities for metagoflow and marine omics demos"
 maintainers = [
     { name = "FAIR-Ease", email = "dpalecek@ualg.pt" },
 ]
