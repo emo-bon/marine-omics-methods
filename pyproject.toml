@@ -3,10 +3,26 @@ name = "marine-omics"
 version = "0.1.2"
 license = { file = "LICENSE.txt" }
 description = "Utilities for metagoflow and marine omics demos"
+readme = "README.md"
+requires-python = ">=3.10"
 maintainers = [
     { name = "FAIR-Ease", email = "dpalecek@ualg.pt" },
 ]
-requires-python = ">=3.10"
+keywords = [
+    "marine omics",
+    "emo-bon",
+    "metagenomics",
+    "bioinformatics",
+    "data visualization",
+    "data analysis",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Bio-Informatics"
+]
 dependencies = [
     "bioblend>=1.4.0",
     "bokeh>=3.7.3",
