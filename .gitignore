@@ -163,5 +163,6 @@ cython_debug/
 
 .history/
 .github/workflows_sandbox/
+tox.ini
 
 old.py
