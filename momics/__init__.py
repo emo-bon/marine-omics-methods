@@ -4,7 +4,7 @@ import logging
 # from momics.version import version as __version__
 
 # This goes into your library somewhere
-logging.getLogger('momics').addHandler(logging.NullHandler())
+logging.getLogger("momics").addHandler(logging.NullHandler())
 
 submoduless = [
     "diversity",
@@ -13,5 +13,4 @@ submoduless = [
     "metadata",
     "plotting",
     "taxonomy",
-    
 ]

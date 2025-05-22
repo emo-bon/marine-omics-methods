@@ -5,6 +5,7 @@ from typing import List, Dict
 
 import skbio
 from skbio.diversity import beta_diversity
+
 # from skbio.stats.ordination import pcoa
 from skbio.stats.distance import permanova
 from sklearn.metrics import pairwise_distances
@@ -16,13 +17,14 @@ logging.getLogger(__name__)
 # Statistical functions #
 #########################
 def run_permanova(
-        data: pd.DataFrame,
-        metadata: pd.DataFrame,
-        permanova_factor: str,
-        permanova_group: List[str],
-        permanova_additional_factors: List[str],
-        permutations: int = 999,
-        verbose: bool = False) -> Dict[str, pd.DataFrame]:
+    data: pd.DataFrame,
+    metadata: pd.DataFrame,
+    permanova_factor: str,
+    permanova_group: List[str],
+    permanova_additional_factors: List[str],
+    permutations: int = 999,
+    verbose: bool = False,
+) -> Dict[str, pd.DataFrame]:
     """
     Run PERMANOVA on the given data and metadata.
     Args:
@@ -37,31 +39,37 @@ def run_permanova(
         Dict[str, pd.DataFrame]: Dictionary containing PERMANOVA results for each factor.
     """
     # Filter metadata based on selected groups
-    if permanova_factor == 'All':
+    if permanova_factor == "All":
         filtered_metadata = metadata.copy()
     else:
         filtered_metadata = metadata[metadata[permanova_factor].isin(permanova_group)]
-    
-    if 'ref_code' not in filtered_metadata.columns:
+
+    if "ref_code" not in filtered_metadata.columns:
         raise KeyError("The 'ref_code' column is missing from filtered metadata.")
-    
+
     # Match data and metadata samples
-    matched_data = data[filtered_metadata['ref_code']].T
+    matched_data = data[filtered_metadata["ref_code"]].T
     abundance_matrix = matched_data
 
     permanova_results = {}
     # factors_to_test = permanova_additional_factors
     for remaining_factor in permanova_additional_factors:
         factor_metadata = filtered_metadata.dropna(subset=[remaining_factor])
-        combined_abundance = abundance_matrix.loc[factor_metadata['ref_code']]
-        
+        combined_abundance = abundance_matrix.loc[factor_metadata["ref_code"]]
+
         # Calculate Bray-Curtis distance matrix
-        dissimilarity_matrix = pairwise_distances(combined_abundance, metric='braycurtis')
-        distance_matrix_obj = skbio.DistanceMatrix(dissimilarity_matrix, ids=combined_abundance.index)
-        
-        factor_metadata = factor_metadata.set_index('ref_code')
-        factor_metadata = factor_metadata.loc[factor_metadata.index.intersection(distance_matrix_obj.ids)]
-        
+        dissimilarity_matrix = pairwise_distances(
+            combined_abundance, metric="braycurtis"
+        )
+        distance_matrix_obj = skbio.DistanceMatrix(
+            dissimilarity_matrix, ids=combined_abundance.index
+        )
+
+        factor_metadata = factor_metadata.set_index("ref_code")
+        factor_metadata = factor_metadata.loc[
+            factor_metadata.index.intersection(distance_matrix_obj.ids)
+        ]
+
         if remaining_factor not in factor_metadata.columns:
             continue
 
@@ -77,10 +85,14 @@ def run_permanova(
                 if verbose:
                     print(f"Factor: {remaining_factor}")
                     logging.info(f"Factor: {remaining_factor}")
-                    logging.info(f"  F-statistic: {permanova_result['test statistic']:.4f}")
+                    logging.info(
+                        f"  F-statistic: {permanova_result['test statistic']:.4f}"
+                    )
                     logging.info(f"  p-value: {permanova_result['p-value']:.4f}\n")
         else:
-            logging.info(f"Skipping factor '{remaining_factor}' due to unique values in grouping vector.")
+            logging.info(
+                f"Skipping factor '{remaining_factor}' due to unique values in grouping vector."
+            )
 
     return permanova_results
 
@@ -203,11 +215,12 @@ def beta_diversity_parametrized(
 # helper functions #
 ####################
 def update_subset_indicator(indicator, df):
-    """ Update the subset indicator with the number of unique ref_codes."""
-    indicator.value = df['ref_code'].nunique()
+    """Update the subset indicator with the number of unique ref_codes."""
+    indicator.value = df["ref_code"].nunique()
+
 
 def update_taxa_count_indicator(indicator, df):
-    """ Update the taxa count indicator with the number of unique taxa."""
+    """Update the taxa count indicator with the number of unique taxa."""
     indicator.value = len(df)
 
 

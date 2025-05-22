@@ -46,8 +46,8 @@ def extract_data_by_name(metadata: Dict, name: str) -> Dict:
     Returns:
         Dict: The extracted data.
     """
-    for d in metadata['@graph']:
-        if 'name' in d.keys() and d['name'] == name:
+    for d in metadata["@graph"]:
+        if "name" in d.keys() and d["name"] == name:
             return d
     return None
 
@@ -61,20 +61,20 @@ def extract_all_datafiles(metadata: Dict) -> list:
         List[Dict]: A list of dictionaries containing data file information.
     """
     datafiles = []
-    for d in metadata['@graph']:
-        if 'name' in d.keys() and d['@type'] == 'File':
+    for d in metadata["@graph"]:
+        if "name" in d.keys() and d["@type"] == "File":
             data_unit = {}
-            data_unit['name'] = d['name']
+            data_unit["name"] = d["name"]
             try:
                 # in MB
-                data_unit['sizeMB'] = int(int(d['contentSize'])/1e6)
+                data_unit["sizeMB"] = int(int(d["contentSize"]) / 1e6)
             except KeyError:
-                data_unit['sizeMB'] = 'unknown'
+                data_unit["sizeMB"] = "unknown"
 
             try:
-                data_unit['downloadUrl'] = d['downloadUrl']
+                data_unit["downloadUrl"] = d["downloadUrl"]
             except KeyError:
-                data_unit['downloadUrl'] = 'unknown'
+                data_unit["downloadUrl"] = "unknown"
             datafiles.append(data_unit)
-            
+
     return datafiles

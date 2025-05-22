@@ -64,9 +64,7 @@ def is_port_in_use(port: int) -> bool:
         return s.connect_ex(("localhost", port)) == 0
 
 
-def diversity_select_widgets(
-    cat_columns: List[str], num_columns: List[str]
-) -> Tuple[
+def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> Tuple[
     pn.widgets.Select,
     pn.widgets.Select,
     pn.widgets.Select,
@@ -224,9 +222,9 @@ def create_indicators_landing_page(
     return list_indicators
 
 
-def create_indicators_diversity() -> Tuple[
-    pn.indicators.Progress, pn.indicators.Number
-]:
+def create_indicators_diversity() -> (
+    Tuple[pn.indicators.Progress, pn.indicators.Number]
+):
     """Creates indicators for RAM usage.
 
     Returns:

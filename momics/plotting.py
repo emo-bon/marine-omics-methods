@@ -66,7 +66,7 @@ def hvplot_heatmap(
 
     Returns:
         hv.element.HeatMap: A heatmap plot of beta diversity.
-    """    
+    """
     # Create the heatmap using hvplot
     heatmap = df.hvplot.heatmap(
         cmap="viridis",
@@ -82,7 +82,9 @@ def hvplot_heatmap(
     if norm:
         heatmap.opts(clim=(0, 1.0))  # Set color limits for normalization
     else:
-        heatmap.opts(clim=(df.min().min(), df.max().max()))  # Set color limits based on data
+        heatmap.opts(
+            clim=(df.min().min(), df.max().max())
+        )  # Set color limits based on data
     return heatmap
 
 
@@ -99,12 +101,16 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
     """
     # Define the color mapper using Bokeh's CategoricalColorMapper
     if 2 < len(alpha[factor].unique()) <= 20:
-        pal = Category20[len(alpha[factor].unique())]  # Use the correct number of colors
+        pal = Category20[
+            len(alpha[factor].unique())
+        ]  # Use the correct number of colors
     else:
         pal = viridis(len(alpha[factor].unique()))
-    
+
     color_mapper = CategoricalColorMapper(
-        factors=alpha[factor].unique().tolist(),  # Unique categories in the factor column
+        factors=alpha[factor]
+        .unique()
+        .tolist(),  # Unique categories in the factor column
         palette=pal,
     )
 
@@ -140,12 +146,16 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
     """
     # Define the color mapper using Bokeh's CategoricalColorMapper
     if len(alpha[factor].unique()) <= 20:
-        pal = Category20[len(alpha[factor].unique())]  # Use the correct number of colors
+        pal = Category20[
+            len(alpha[factor].unique())
+        ]  # Use the correct number of colors
     else:
         pal = viridis(len(alpha[factor].unique()))
-    
+
     color_mapper = CategoricalColorMapper(
-        factors=alpha[factor].unique().tolist(),  # Unique categories in the factor column
+        factors=alpha[factor]
+        .unique()
+        .tolist(),  # Unique categories in the factor column
         palette=pal,
     )
 
@@ -176,7 +186,7 @@ def hvplot_plot_pcoa_black(
     Args:
         pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
         color_by (str, optional): The column name to color the points by. Defaults to None.
-    
+
     Returns:
         hv.element.Scatter: The PCoA plot.
     """
@@ -184,9 +194,13 @@ def hvplot_plot_pcoa_black(
 
     if 2 < len(pcoa_df[color_by].unique()) <= 20:
         if pcoa_df[color_by].dtype == "object":
-            pal = Category20[len(pcoa_df[color_by].unique())]  # Use the correct number of colors
+            pal = Category20[
+                len(pcoa_df[color_by].unique())
+            ]  # Use the correct number of colors
             color_mapper = CategoricalColorMapper(
-                factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
+                factors=pcoa_df[color_by]
+                .unique()
+                .tolist(),  # Unique categories in the factor column
                 palette=pal,
             )
         else:
@@ -199,7 +213,9 @@ def hvplot_plot_pcoa_black(
         if pcoa_df[color_by].dtype == "object":
             pal = viridis(len(pcoa_df[color_by].unique()))
             color_mapper = CategoricalColorMapper(
-                factors=pcoa_df[color_by].unique().tolist(),  # Unique categories in the factor column
+                factors=pcoa_df[color_by]
+                .unique()
+                .tolist(),  # Unique categories in the factor column
                 palette=pal,
             )
         else:
@@ -208,7 +224,6 @@ def hvplot_plot_pcoa_black(
                 low=pcoa_df[color_by].min(),
                 high=pcoa_df[color_by].max(),
             )
-
 
     if pcoa_df[color_by].count() >= 0:
         # Create the scatter plot using hvplot
@@ -226,7 +241,7 @@ def hvplot_plot_pcoa_black(
         )
 
     fig = fig.opts(
-        cmap=color_mapper.palette, #if color_mapper else viridis(1),  # Apply the color mapper's palette
+        cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
         xlabel="PC1",
         ylabel="PC2",
         title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
@@ -239,6 +254,7 @@ def hvplot_plot_pcoa_black(
     )
 
     return fig
+
 
 ##############
 # Matplotlib #
@@ -326,7 +342,7 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
 
     # check axes and find which is have legend
     ax = change_legend_labels(ax, labels)
-    ax.tick_params(axis='x', which='major', labelsize=np.log(4e5/len(alpha_df)))
+    ax.tick_params(axis="x", which="major", labelsize=np.log(4e5 / len(alpha_df)))
 
     ax.set_title(f"Shannon Index Grouped by {factor}")
     ax.set_xlabel("Sample")
@@ -379,22 +395,23 @@ def mpl_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> plt.Figure:
     fig.patch.set_facecolor(PLOT_FACE_COLOR)
     ax = fig.add_subplot(111)
 
-    df['type'] = df['type'].fillna('Unknown')
+    df["type"] = df["type"].fillna("Unknown")
 
     sns.swarmplot(
-        data=df, x="type", y="average_p",
-        hue="max_p", size=7,
-        palette="coolwarm",
-        ax=ax)
+        data=df, x="type", y="average_p", hue="max_p", size=7, palette="coolwarm", ax=ax
+    )
     sns.violinplot(
-        data=df, x="type", y="average_p",
-        inner=None, fill=False,
+        data=df,
+        x="type",
+        y="average_p",
+        inner=None,
+        fill=False,
         color="black",
         ax=ax,
     )
     if normalize:
         ax.set_ylim(-0.1, 1.1)
-    
+
     ax.set_title(f"Probabilities of identified BGCs by type")
     ax.set_xlabel("BGC type")
     ax.set_ylabel("Average probability")
@@ -416,7 +433,7 @@ def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
     Returns:
         hv.Overlay: An overlay of swarm and violin plots.
     """
-    df['type'] = df['type'].fillna('Unknown')
+    df["type"] = df["type"].fillna("Unknown")
 
     # Create the swarm plot
     swarm = df.hvplot.scatter(
@@ -429,14 +446,14 @@ def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
         title="Probabilities of identified BGCs by type",
         xlabel="BGC type",
         ylabel="Average probability",
-        tools=["hover"]
+        tools=["hover"],
     )
 
     # Create the violin plot
     violin = df.hvplot.violin(
         # x="type",
         y="average_p",
-        by='type',
+        by="type",
     ).opts(
         violin_fill_color=PLOT_FACE_COLOR,
         violin_alpha=0.5,
@@ -454,7 +471,9 @@ def hvplot_bgcs_violin(df: pd.DataFrame, normalize: bool = False) -> hv.Overlay:
     return combined
 
 
-def plot_domain_abundance(filtered_domains: pd.Series, abundance_min: int) -> hv.element.Bars:
+def plot_domain_abundance(
+    filtered_domains: pd.Series, abundance_min: int
+) -> hv.element.Bars:
     """
     Plot the histogram of the number of pfam domains from the feature table using hvplot.
 
@@ -492,11 +511,13 @@ def plot_tsne(X_embedded: np.ndarray, kmeans) -> hv.element.Scatter:
         hv.element.Scatter: The t-SNE plot of domain clusters.
     """
     # Create a DataFrame for hvplot
-    tsne_df = pd.DataFrame({
-        "t-SNE 1": X_embedded[:, 0],
-        "t-SNE 2": X_embedded[:, 1],
-        "Cluster": kmeans.labels_
-    })
+    tsne_df = pd.DataFrame(
+        {
+            "t-SNE 1": X_embedded[:, 0],
+            "t-SNE 2": X_embedded[:, 1],
+            "Cluster": kmeans.labels_,
+        }
+    )
 
     # Create the scatter plot using hvplot
     plot = tsne_df.hvplot.scatter(
@@ -509,9 +530,11 @@ def plot_tsne(X_embedded: np.ndarray, kmeans) -> hv.element.Scatter:
         title="t-SNE of Domain Clusters",
         xlabel="t-SNE 1",
         ylabel="t-SNE 2",
-        tools=["hover"]
+        tools=["hover"],
     )
     return plot
+
+
 ##################
 # Plot for panel #
 ##################
@@ -539,7 +562,7 @@ def alpha_plot(
         Union[pn.pane.Matplotlib, pn.pane.HoloViews]: A pane containing the alpha diversity plot.
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
-    hash_sort = {'factor': factor, 'values': 'Shannon'}
+    hash_sort = {"factor": factor, "values": "Shannon"}
     alpha = alpha.sort_values(by=hash_sort[order])
 
     if backend == "matplotlib":
@@ -582,7 +605,7 @@ def av_alpha_plot(
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
     # TODO: this will not work, because it gets grouped in mpl_average_per_factor I think
-    hash_sort = {'factor': factor, 'values': 'Shannon'}
+    hash_sort = {"factor": factor, "values": "Shannon"}
     alpha = alpha.sort_values(by=hash_sort[order])
 
     if backend == "matplotlib":

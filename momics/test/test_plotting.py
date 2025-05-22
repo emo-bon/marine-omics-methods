@@ -146,12 +146,15 @@ def test_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
         table_name: add_column(data_dict[table_name], col_to_add),
     }
     fig_pane = alpha_plot(
-        data_dict, table_name, factor,
+        data_dict,
+        table_name,
+        factor,
         sample_metadata,
-        order=order, backend=backend,
-        )
+        order=order,
+        backend=backend,
+    )
 
-    hash_pane = {'matplotlib': pn.pane.Matplotlib, 'hvplot': pn.pane.HoloViews}
+    hash_pane = {"matplotlib": pn.pane.Matplotlib, "hvplot": pn.pane.HoloViews}
     # Check if the result is a panel Matplotlib pane
     assert isinstance(
         fig_pane, hash_pane[backend]
@@ -164,7 +167,7 @@ def test_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
         # Check if the result is a hvplot Figure
         assert isinstance(fig, hv.element.Bars), "The result should be a hvplot Figure"
     elif backend == "matplotlib":
-    # Check if the result is a matplotlib Figure
+        # Check if the result is a matplotlib Figure
         assert isinstance(fig, plt.Figure), "The result should be a matplotlib Figure"
 
         # Check if the plot contains the correct labels and title
@@ -224,12 +227,10 @@ def test_av_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
         table_name: add_column(data_dict[table_name], col_to_add),
     }
     fig_pane = av_alpha_plot(
-        data_dict, table_name,
-        factor, sample_metadata,
-        order=order, backend=backend
+        data_dict, table_name, factor, sample_metadata, order=order, backend=backend
     )
 
-    hash_pane = {'matplotlib': pn.pane.Matplotlib, 'hvplot': pn.pane.HoloViews}
+    hash_pane = {"matplotlib": pn.pane.Matplotlib, "hvplot": pn.pane.HoloViews}
     # Check if the result is a panel Matplotlib pane
     assert isinstance(
         fig_pane, hash_pane[backend]
@@ -241,7 +242,7 @@ def test_av_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
     if backend == "hvplot":
         # Check if the result is a hvplot Figure
         assert isinstance(fig, hv.element.Bars), "The result should be a hvplot Figure"
-    
+
     elif backend == "matplotlib":
         # Check if the result is a matplotlib Figure
         assert isinstance(fig, plt.Figure), "The result should be a matplotlib Figure"
@@ -283,6 +284,7 @@ def test_av_alpha_plot(table_name, col_to_add, order, backend, sample_metadata):
     #     ]
     # ), "The hues are not applied correctly"
 
+
 @pytest.mark.parametrize(
     "norm, backend",
     [
@@ -304,7 +306,7 @@ def test_beta_plot(norm, backend):
     }
     fig_pane = beta_plot(data, table_name, norm, taxon, backend=backend)
 
-    hash_pane = {'matplotlib': pn.pane.Matplotlib, 'hvplot': pn.pane.HoloViews}
+    hash_pane = {"matplotlib": pn.pane.Matplotlib, "hvplot": pn.pane.HoloViews}
     # Check if the result is a panel Matplotlib pane
     assert isinstance(
         fig_pane, hash_pane[backend]
@@ -315,7 +317,9 @@ def test_beta_plot(norm, backend):
 
     if backend == "hvplot":
         # Check if the result is a hvplot Figure
-        assert isinstance(fig, hv.element.HeatMap), "The result should be a hvplot Figure"
+        assert isinstance(
+            fig, hv.element.HeatMap
+        ), "The result should be a hvplot Figure"
     elif backend == "matplotlib":
         # Check if the result is a matplotlib Figure
         assert isinstance(fig, plt.Figure), "The result should be a matplotlib Figure"

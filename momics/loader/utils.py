@@ -2,7 +2,8 @@ import io
 import pandas as pd
 from typing import Dict, List
 
-def bytes_to_df(data:bytes, sep:str = "\t") -> Dict[str, pd.DataFrame]:
+
+def bytes_to_df(data: bytes, sep: str = "\t") -> Dict[str, pd.DataFrame]:
     """
     Convert a dictionary of bytes to a dictionary of DataFrames.
 
@@ -17,7 +18,7 @@ def bytes_to_df(data:bytes, sep:str = "\t") -> Dict[str, pd.DataFrame]:
         io.StringIO(
             str(
                 data,
-                'utf-8',
+                "utf-8",
             )
         ),
         sep=sep,

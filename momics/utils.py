@@ -51,12 +51,13 @@ def setup_ipython():
         # Install the momics package
         install_colab_packages()
 
+
 def is_ipython():
     # This is for the case when the script is run from the Jupyter notebook
     if "ipykernel" not in sys.modules:
         print("Not an IPython setup")
         return False
-    
+
     return True
 
 
