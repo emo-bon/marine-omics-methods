@@ -39,7 +39,7 @@ dependencies = [
     "psutil>=5.8.0",
     "pyngrok>=7.2.3",
     "python-dotenv>=1.0.0",
-    "py-udal-mgo @ git+https://github.com/fair-ease/py-udal-mgo.git",
+    "git+https://github.com/fair-ease/py-udal-mgo.git",
     "requests>=2.26.0",
     "scikit-bio>=0.6.3",
     "scikit-learn>=1.6.0",
