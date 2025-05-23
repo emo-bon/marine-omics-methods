@@ -57,11 +57,11 @@ def test_diversity_select_widgets(sample_columns):
     ), "The options of the second widget are incorrect"
 
     assert (
-        widgets[2].value == "SSU"
-    ), "The initial value of the third widget should be 'SSU'"
+        widgets[2].value == "ssu"
+    ), "The initial value of the third widget should be 'ssu'"
     assert widgets[2].options == [
-        "SSU",
-        "LSU",
+        "ssu",
+        "lsu",
     ], "The options of the third widget are incorrect"
 
     assert (
