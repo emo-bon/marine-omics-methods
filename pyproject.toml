@@ -23,30 +23,27 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Bio-Informatics"
 ]
-
-[tool.poetry.dependencies]
-python = ">=3.10"
-bioblend = ">=1.4.0"
-bokeh = ">=3.7.3"
-holoviews = ">=1.20.0"
-hvplot = ">=0.11.2"
-fastparquet = ">=2024.11.0"
-ipython = ">=8.30.0"
-matplotlib = ">=3.5"
-numpy = ">=1.23.5"
-pandas = ">=1.2.0"
-panel = ">=1.6.0"
-plotly = ">=5.3.0"
-psutil = ">=5.8.0"
-pyngrok = ">=7.2.3"
-python-dotenv = ">=1.0.0"
-requests = ">=2.26.0"
-scikit-bio = ">=0.6.3"
-scikit-learn = ">=1.6.0"
-seaborn = ">=0.11.2"
-
-# Git dependency — this is the correct way!
-py-udal-mgo = { git = "https://github.com/fair-ease/py-udal-mgo.git" }
+dependencies = [
+    "bioblend>=1.4.0",
+    "bokeh>=3.7.3",
+    "holoviews>=1.20.0",
+    "hvplot>=0.11.2",
+    "fastparquet>=2024.11.0",
+    "ipython>=8.30.0",
+    "matplotlib>=3.7.3",
+    "numpy>=2.2.0",
+    "pandas>=2.2.3",
+    "panel>=1.7.0",
+    "plotly>=5.3.0",
+    "psutil>=5.8.0",
+    "pyngrok>=7.2.3",
+    "python-dotenv>=1.0.0",
+    "py-udal-mgo @ git+https://github.com/fair-ease/py-udal-mgo.git",
+    "requests>=2.26.0",
+    "scikit-bio>=0.6.3",
+    "scikit-learn>=1.6.0",
+    "seaborn>=0.11.2",
+]
 
 [project.optional-dependencies]
 testing = [
