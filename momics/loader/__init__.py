@@ -1,4 +1,4 @@
-from .parquets import load_parquets
+from .parquets import load_parquets, load_parquets_udal
 from .ro_crates import (
     get_rocrate_metadata_gh,
     get_rocrate_data,
@@ -14,5 +14,6 @@ __all__ = [
     "extract_data_by_name",
     "extract_all_datafiles",
     "load_parquets",
+    "load_parquets_udal",
     "bytes_to_df",
 ]
