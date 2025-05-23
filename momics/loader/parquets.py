@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from typing import Dict
+from mgo.udal import UDAL
 
 
 def load_parquets(folder: str) -> Dict[str, pd.DataFrame]:
@@ -31,6 +32,18 @@ def load_parquets(folder: str) -> Dict[str, pd.DataFrame]:
             # Load the parquet file into a DataFrame
             df = pd.read_parquet(file_path)
             # Use the file name without extension as the dictionary key
-            name = file_name.split(".")[-2]
+            name = file_name.split(".")[-2].lower()
             mgf_parquet_dfs[name] = df
     return mgf_parquet_dfs
+
+
+def load_parquets_udal():
+    """
+    Load parquet files into a dictionary by looping udal calls
+    """
+    udal = UDAL()
+    
+    parquets = {}
+    for dataset in ['go', 'go_slim', 'ips', 'ko', 'pfam', 'lsu', 'ssu']:
+        parquets[dataset] = udal.execute(f'urn:embrc.eu:emobon:{dataset}').data()
+    return parquets

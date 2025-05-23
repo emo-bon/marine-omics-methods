@@ -10,6 +10,7 @@ import os
 import pandas as pd
 from typing import Dict, List
 from datetime import datetime
+from mgo.udal import UDAL
 
 
 def get_metadata(folder):
@@ -43,6 +44,36 @@ def get_metadata(folder):
 
     return full_metadata
 
+
+def get_metadata_udal():
+    """
+    Load metadata from the UDAL API
+    """
+    udal = UDAL()
+
+    sample_metadata = udal.execute('urn:embrc.eu:emobon:logsheets').data()
+    observatory_metadata = udal.execute('urn:embrc.eu:emobon:observatories').data().set_index('obs_id')
+
+    # Merge metadata
+    full_metadata = pd.merge(
+        sample_metadata,
+        observatory_metadata,
+        on=["obs_id", "env_package"],  # Matching conditions
+        how="inner",  # Inner join
+    )
+
+    # Sort the merged dataframe by 'ref_code' column in ascending order
+    full_metadata = full_metadata.sort_values(by="ref_code", ascending=True)
+
+    # first convert some of the boolean cols
+    full_metadata["failure"] = full_metadata["failure"].astype(str)
+    # replace the 'nan' values with 'NA'
+    full_metadata["failure"] = full_metadata["failure"].replace("nan", "NA")
+
+    # adding replacement for the missing values for object type columns
+    full_metadata = fill_na_for_object_columns(full_metadata)
+
+    return full_metadata
 
 #####################
 ## Filter metadata ##

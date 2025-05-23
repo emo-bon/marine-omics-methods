@@ -98,8 +98,8 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
 
     select_table_beta = pn.widgets.Select(
         name="Source table beta",
-        value="SSU",
-        options=["SSU", "LSU"],
+        value="ssu",
+        options=["ssu", "lsu"],
         description="Select a table for beta diversity analysis",
     )
 
