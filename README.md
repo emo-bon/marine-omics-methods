@@ -13,6 +13,17 @@ These methods are currently use only for FAIR-EASE [pilot demos](https://github.
 
 The idea is to provide testable methods to allow as much flexibility and remixing of the functionalities provided
 
+## Installation
+
+One of the dependencies is currently not released to PyPI and is in active development, therefore you need to manually install it before `marine-omics` itself:
+
+```bash
+# UDAL data query layer
+pip install git+https://github.com/fair-ease/py-udal-mgo.git
+
+pip install marine-omics
+```
+
 ## European Marine Omics Biodiversity Observation Network
 
 Specifically, we aim primarily to manipulate EMO-BON marine genomics sampling data and metadata from ENA project [PRJEB51688](https://www.ebi.ac.uk/ena/browser/view/PRJEB51688). The interactive dashboards and jupyter notebooks built on top of this repository can be found [here](https://github.com/emo-bon/momics-demos/tree/main).
