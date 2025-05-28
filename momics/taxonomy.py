@@ -37,15 +37,15 @@ def pivot_taxonomic_data(
     """
     # Select relevant columns
     df["taxonomic_concat"] = (
-        df["ncbi_tax_id"].astype(str)
-        + f";sk_{df["superkingdom"].fillna("")}"
-        + f";k_{df["kingdom"].fillna("")}"
-        + f";p_{df["phylum"].fillna("")}"
-        + f";c_{df["class"].fillna("")}"
-        + f";o_{df["order"].fillna("")}"
-        + f";f_{df["family"].fillna("")}"
-        + f";g_{df["genus"].fillna("")}"
-        + f";s_{df["species"].fillna("")}"
+        df["ncbi_tax_id"].astype(str) +
+        f";sk_{df["superkingdom"].fillna("")}" +
+        f";k_{df["kingdom"].fillna("")}" +
+        f";p_{df["phylum"].fillna("")}" +
+        f";c_{df["class"].fillna("")}" +
+        f";o_{df["order"].fillna("")}" +
+        f";f_{df["family"].fillna("")}" +
+        f";g_{df["genus"].fillna("")}" +
+        f";s_{df["species"].fillna("")}"
     )
     pivot_table = (
         df.pivot_table(
@@ -191,6 +191,24 @@ def aggregate_by_taxonomic_level(df: pd.DataFrame, level: str) -> pd.DataFrame:
     # Group by the specified level and sum abundances across samples (columns)
     df_grouped = df_level.groupby(level).sum(numeric_only=True)
     return df_grouped
+
+
+def remove_high_taxa(df: pd.DataFrame, tax_level: str = 'phylum') -> pd.DataFrame:
+    """
+    Remove high level taxa from the dataframe.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing taxonomic data.
+        tax_level (str): The taxonomic level to filter by (e.g., 'phylum', 'class', 'order', etc.).
+
+    Returns:
+        pd.DataFrame: DataFrame with rows where the specified taxonomic level is not None.
+    """
+    if tax_level not in df.columns:
+        raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
+    
+    # Filter out rows where the taxonomic level is None or NaN
+    return df[~df[tax_level].isna()].copy()
 
 
 def prevalence_cutoff(
