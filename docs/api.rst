@@ -35,12 +35,27 @@ This submodule includes helper functions used during the data loading process.
     :members:
     :show-inheritance:
 
+Complex networks
+==================
+Implementation of `networkx` functions for complex networks analysis, specifically tailored for marine omics data. Examples include taxonomy co-occurrence networks and biosynthetic gene cluster analysis.
+
+.. automodule:: momics.networks
+    :members:
+    :show-inheritance:
 
 Diversity module
 ==================
 This module offers methods for calculating and analyzing biodiversity metrics from omics data.
 
 .. automodule:: momics.diversity
+    :members:
+    :show-inheritance:
+
+Galaxy integration
+==================
+This module enables integration with the Galaxy platform for workflow automation and reproducibility. We keep it minimalistic, because we expect to use direct install of Galaxy once demos are deployed in the final VRE.
+
+.. automodule:: momics.galaxy
     :members:
     :show-inheritance:
 
@@ -66,14 +81,6 @@ Taxonomy module
 This module provides tools for handling and analyzing taxonomic information in omics datasets.
 
 .. automodule:: momics.taxonomy
-    :members:
-    :show-inheritance:
-
-Galaxy integration
-==================
-This module enables integration with the Galaxy platform for workflow automation and reproducibility. We keep it minimalistic, because we expect to use direct install of Galaxy once demos are deployed in the final VRE.
-
-.. automodule:: momics.galaxy
     :members:
     :show-inheritance:
 

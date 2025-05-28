@@ -42,8 +42,8 @@ def load_parquets_udal():
     Load parquet files into a dictionary by looping udal calls
     """
     udal = UDAL()
-    
+
     parquets = {}
-    for dataset in ['go', 'go_slim', 'ips', 'ko', 'pfam', 'lsu', 'ssu']:
-        parquets[dataset] = udal.execute(f'urn:embrc.eu:emobon:{dataset}').data()
+    for dataset in ["go", "go_slim", "ips", "ko", "pfam", "lsu", "ssu"]:
+        parquets[dataset] = udal.execute(f"urn:embrc.eu:emobon:{dataset}").data()
     return parquets

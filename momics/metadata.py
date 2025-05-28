@@ -51,8 +51,10 @@ def get_metadata_udal():
     """
     udal = UDAL()
 
-    sample_metadata = udal.execute('urn:embrc.eu:emobon:logsheets').data()
-    observatory_metadata = udal.execute('urn:embrc.eu:emobon:observatories').data().set_index('obs_id')
+    sample_metadata = udal.execute("urn:embrc.eu:emobon:logsheets").data()
+    observatory_metadata = (
+        udal.execute("urn:embrc.eu:emobon:observatories").data().set_index("obs_id")
+    )
 
     # Merge metadata
     full_metadata = pd.merge(
@@ -74,6 +76,7 @@ def get_metadata_udal():
     full_metadata = fill_na_for_object_columns(full_metadata)
 
     return full_metadata
+
 
 #####################
 ## Filter metadata ##

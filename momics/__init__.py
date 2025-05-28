@@ -13,4 +13,5 @@ submoduless = [
     "metadata",
     "plotting",
     "taxonomy",
+    "networks",
 ]
