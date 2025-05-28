@@ -36,17 +36,19 @@ def pivot_taxonomic_data(
         pd.DataFrame: A pivot table with taxonomic data.
     """
     # Select relevant columns
+    # fmt: off
     df["taxonomic_concat"] = (
         df["ncbi_tax_id"].astype(str) +
-        f";sk_{df["superkingdom"].fillna("")}" +
-        f";k_{df["kingdom"].fillna("")}" +
-        f";p_{df["phylum"].fillna("")}" +
-        f";c_{df["class"].fillna("")}" +
-        f";o_{df["order"].fillna("")}" +
-        f";f_{df["family"].fillna("")}" +
-        f";g_{df["genus"].fillna("")}" +
-        f";s_{df["species"].fillna("")}"
+        ";sk_" + df["superkingdom"].fillna("") +
+        ";k_" + df["kingdom"].fillna("") +
+        ";p_" + df["phylum"].fillna("") +
+        ";c_" + df["class"].fillna("") +
+        ";o_" + df["order"].fillna("") +
+        ";f_" + df["family"].fillna("") +
+        ";g_" + df["genus"].fillna("") +
+        ";s_" + df["species"].fillna("")
     )
+    # fmt: on
     pivot_table = (
         df.pivot_table(
             index=["ncbi_tax_id", "taxonomic_concat"],
@@ -193,7 +195,7 @@ def aggregate_by_taxonomic_level(df: pd.DataFrame, level: str) -> pd.DataFrame:
     return df_grouped
 
 
-def remove_high_taxa(df: pd.DataFrame, tax_level: str = 'phylum') -> pd.DataFrame:
+def remove_high_taxa(df: pd.DataFrame, tax_level: str = "phylum") -> pd.DataFrame:
     """
     Remove high level taxa from the dataframe.
 
@@ -206,7 +208,7 @@ def remove_high_taxa(df: pd.DataFrame, tax_level: str = 'phylum') -> pd.DataFram
     """
     if tax_level not in df.columns:
         raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
-    
+
     # Filter out rows where the taxonomic level is None or NaN
     return df[~df[tax_level].isna()].copy()
 
