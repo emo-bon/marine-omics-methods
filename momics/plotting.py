@@ -178,7 +178,7 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
 
 
 def hvplot_plot_pcoa_black(
-    pcoa_df: pd.DataFrame, color_by: str = None
+    pcoa_df: pd.DataFrame, color_by: str = None, explained_variance: Tuple[float, float] = None
 ) -> hv.element.Scatter:
     """
     Plots a PCoA plot with optional coloring using hvplot.
@@ -190,7 +190,7 @@ def hvplot_plot_pcoa_black(
     Returns:
         hv.element.Scatter: The PCoA plot.
     """
-    perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
+    valid_perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
 
     if 2 < len(pcoa_df[color_by].unique()) <= 20:
         if pcoa_df[color_by].dtype == "object":
@@ -240,11 +240,20 @@ def hvplot_plot_pcoa_black(
             color="black",  # Use color_by or black for coloring
         )
 
+    if explained_variance:
+        var_perc = explained_variance[0] * 100, explained_variance[1] * 100
+        fig = fig.opts(
+            xlabel=f"PC1 ({var_perc[0]:.2f}%)",
+            ylabel=f"PC2 ({var_perc[1]:.2f}%)",
+        )
+    else:
+        fig = fig.opts(
+            xlabel="PC1",
+            ylabel="PC2",
+        )
     fig = fig.opts(
         cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
-        xlabel="PC1",
-        ylabel="PC2",
-        title=f"PCoA Plot with valid {color_by} values: ({perc:.2f}%)",
+        title=f"PCoA for {color_by}, valid values: ({valid_perc:.2f}%)",
         size=MARKER_SIZE,
         fill_alpha=0.5,
         # legend_position="top_right",  # Adjust legend position
@@ -672,7 +681,7 @@ def beta_plot_pc(
     table_name: str,
     factor: str,
     taxon: str = "ncbi_tax_id",
-) -> Tuple[hv.element.Scatter, float]:
+) -> Tuple[hv.element.Scatter, Tuple[float, float]]:
     """
     Creates a beta diversity PCoA plot.
 
@@ -684,13 +693,16 @@ def beta_plot_pc(
         taxon (str, optional): The taxon level for beta diversity calculation. Defaults to "ncbi_tax_id".
 
     Returns:
-        Tuple[hv.element.Scatter, float]: A tuple containing the beta diversity PCoA plot and the explained variance.
+        Tuple[hv.element.Scatter, Tuple[float, float]]: A tuple containing the beta diversity PCoA plot and the explained variance for PC1 and PC2.
     """
     beta = beta_diversity_parametrized(
         tables_dict[table_name], taxon=taxon, metric="braycurtis"
     )
     pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
-    explained_variance = pcoa_result.proportion_explained[:2].sum() * 100
+    explained_variance = (
+        pcoa_result.proportion_explained[0],
+        pcoa_result.proportion_explained[1]
+    )
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,
@@ -698,15 +710,14 @@ def beta_plot_pc(
         right_on="ref_code",
         how="inner",
     )
-    return hvplot_plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
+    return hvplot_plot_pcoa_black(pcoa_df, color_by=factor, explained_variance=explained_variance), explained_variance
 
 
 def beta_plot_pc_granular(
     filtered_data: pd.DataFrame,
     metadata: pd.DataFrame,
     factor: str,
-    # taxon: str = "ncbi_tax_id",
-) -> Tuple[hv.element.Scatter, float]:
+) -> Tuple[hv.element.Scatter, Tuple[float, float]]:
     """
     Creates a beta diversity PCoA plot.
 
@@ -724,7 +735,10 @@ def beta_plot_pc_granular(
 
     beta = beta_diversity("braycurtis", filtered_data.iloc[:, 1:].T)
     pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
-    explained_variance = pcoa_result.proportion_explained[:2].sum() * 100
+    explained_variance = (
+        pcoa_result.proportion_explained[0],
+        pcoa_result.proportion_explained[1],
+    )
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,
@@ -733,8 +747,7 @@ def beta_plot_pc_granular(
         how="inner",
     )
 
-    # return plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
-    return hvplot_plot_pcoa_black(pcoa_df, color_by=factor), explained_variance
+    return hvplot_plot_pcoa_black(pcoa_df, color_by=factor, explained_variance=explained_variance), explained_variance
 
 
 def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:

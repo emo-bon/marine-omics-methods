@@ -18,6 +18,10 @@ def get_metadata(folder):
     sample_metadata = pd.read_csv(
         os.path.join(folder, "Batch1and2_combined_logsheets_2024-11-12.csv")
     )
+    assert 'source_mat_id' in sample_metadata.columns, (
+        "The sample metadata file does not contain the 'source_mat_id' column."
+    )
+    print(sample_metadata['source_mat_id'].unique())
 
     observatory_metadata = pd.read_csv(
         os.path.join(folder, "Observatory_combined_logsheets_validated.csv")
@@ -51,7 +55,12 @@ def get_metadata_udal():
     """
     udal = UDAL()
 
-    sample_metadata = udal.execute("urn:embrc.eu:emobon:logsheets").data()
+    sample_metadata = udal.execute("urn:embrc.eu:emobon:logsheets").data().reset_index()
+
+    assert 'source_mat_id' in sample_metadata.columns, (
+        "The sample metadata file does not contain the 'source_mat_id' column."
+    )
+
     observatory_metadata = (
         udal.execute("urn:embrc.eu:emobon:observatories").data().set_index("obs_id")
     )
