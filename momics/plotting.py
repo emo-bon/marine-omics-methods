@@ -74,6 +74,7 @@ def hvplot_heatmap(
         xlabel="Sample",
         ylabel="Sample",
         title=f"Beta Diversity ({taxon})",
+        hover_cols=['source_mat_id'],
     ).opts(
         xticks=0,  # remove xticks labels
         yticks=0,  # remove yticks labels
@@ -116,7 +117,7 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
 
     # Create the horizontal bar plot using hvplot
     fig = alpha.hvplot.barh(
-        x="ref_code",
+        x="source_mat_id",
         y="Shannon",
         xlabel="Sample",
         ylabel="Shannon Index",
@@ -167,11 +168,12 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
         ylabel="Shannon Index",
         title=f"Average Shannon Index Grouped by {factor}",
         color=factor,  # Use the factor column for coloring
+        hover_cols=['source_mat_id'],
     ).opts(
         cmap=color_mapper.palette,  # Apply the color mapper's palette
         show_legend=False,
         # legend_position="top_right",  # Adjust legend position
-        tools=["hover"],  # Add hover tool for interactivity
+        # tools=["hover"],  # Add hover tool for interactivity
         backend_opts={"plot.toolbar.autohide": True},
     )
     return fig
@@ -231,6 +233,7 @@ def hvplot_plot_pcoa_black(
             x="PC1",
             y="PC2",
             color=color_by,  # Use the factor column for coloring
+            hover_cols=["source_mat_id", "PC1", "PC2"],
         )
 
     else:
@@ -238,6 +241,7 @@ def hvplot_plot_pcoa_black(
             x="PC1",
             y="PC2",
             color="black",  # Use color_by or black for coloring
+            hover_cols=["source_mat_id", "PC1", "PC2"],
         )
 
     if explained_variance:
@@ -251,6 +255,10 @@ def hvplot_plot_pcoa_black(
             xlabel="PC1",
             ylabel="PC2",
         )
+    assert 'source_mat_id' in pcoa_df.columns, (f"Missing 'source_mat_id' column in PCoA DataFrame")
+    assert 'PC1' in pcoa_df.columns, (f"Missing 'PC1' column in PCoA DataFrame")
+    assert 'PC2' in pcoa_df.columns, (f"Missing 'PC2' column in PCoA DataFrame")
+    
     fig = fig.opts(
         cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
         title=f"PCoA for {color_by}, valid values: ({valid_perc:.2f}%)",
@@ -258,10 +266,8 @@ def hvplot_plot_pcoa_black(
         fill_alpha=0.5,
         # legend_position="top_right",  # Adjust legend position
         show_legend=False,
-        tools=["hover"],  # Add hover tool for interactivity
         backend_opts={"plot.toolbar.autohide": True},
     )
-
     return fig
 
 
@@ -343,7 +349,7 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
     ax = fig.add_subplot(111)
     sns.barplot(
         data=alpha_df,
-        x="ref_code",
+        x="source_mat_id",
         y="Shannon",
         hue=factor,
         palette="coolwarm",
@@ -613,6 +619,7 @@ def av_alpha_plot(
         Union[pn.pane.Matplotlib, pn.pane.HoloViews]: A pane containing the average alpha diversity plot.
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
+    assert 'source_mat_id' in alpha.columns, (f"Missing 'source_mat_id' column in alpha DataFrame")
     # TODO: this will not work, because it gets grouped in mpl_average_per_factor I think
     hash_sort = {"factor": factor, "values": "Shannon"}
     alpha = alpha.sort_values(by=hash_sort[order])
@@ -710,6 +717,7 @@ def beta_plot_pc(
         right_on="ref_code",
         how="inner",
     )
+    assert 'source_mat_id' in pcoa_df.columns, (f"Missing 'source_mat_id' column in PCoA DataFrame")
     return hvplot_plot_pcoa_black(pcoa_df, color_by=factor, explained_variance=explained_variance), explained_variance
 
 
