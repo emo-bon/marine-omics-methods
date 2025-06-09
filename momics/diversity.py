@@ -45,17 +45,18 @@ def run_permanova(
         filtered_metadata = metadata[metadata[permanova_factor].isin(permanova_group)]
 
     assert "source_mat_id" in filtered_metadata.columns, "The 'source_mat_id' column is missing from filtered metadata."
-    assert "source_mat_id" in data.columns, "The 'source_mat_id' column is missing from data."
+
+    # TODO: fix presence of source_mat_id in data first
+    # assert "source_mat_id" in data.columns, "The 'source_mat_id' column is missing from data."
 
     # Match data and metadata samples
-    matched_data = data[filtered_metadata["source_mat_id"]].T
-    abundance_matrix = matched_data
+    abundance_matrix = data[filtered_metadata["ref_code"]].T
 
     permanova_results = {}
     # factors_to_test = permanova_additional_factors
     for remaining_factor in permanova_additional_factors:
         factor_metadata = filtered_metadata.dropna(subset=[remaining_factor])
-        combined_abundance = abundance_matrix.loc[factor_metadata["source_mat_id"]]
+        combined_abundance = abundance_matrix.loc[factor_metadata["ref_code"]]
 
         # Calculate Bray-Curtis distance matrix
         dissimilarity_matrix = pairwise_distances(
@@ -65,7 +66,7 @@ def run_permanova(
             dissimilarity_matrix, ids=combined_abundance.index
         )
 
-        factor_metadata = factor_metadata.set_index("source_mat_id")
+        factor_metadata = factor_metadata.set_index("ref_code")
         factor_metadata = factor_metadata.loc[
             factor_metadata.index.intersection(distance_matrix_obj.ids)
         ]
