@@ -44,8 +44,8 @@ def run_permanova(
     else:
         filtered_metadata = metadata[metadata[permanova_factor].isin(permanova_group)]
 
-    if "source_mat_id" not in filtered_metadata.columns:
-        raise KeyError("The 'source_mat_id' column is missing from filtered metadata.")
+    assert "source_mat_id" in filtered_metadata.columns, "The 'source_mat_id' column is missing from filtered metadata."
+    assert "source_mat_id" in data.columns, "The 'source_mat_id' column is missing from data."
 
     # Match data and metadata samples
     matched_data = data[filtered_metadata["source_mat_id"]].T

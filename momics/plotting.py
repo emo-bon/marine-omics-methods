@@ -261,7 +261,7 @@ def hvplot_plot_pcoa_black(
     
     fig = fig.opts(
         cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
-        title=f"PCoA for {color_by}, valid values: ({valid_perc:.2f}%)",
+        title=f"PCoA colored by {color_by}, valid values: ({valid_perc:.2f}%)",
         size=MARKER_SIZE,
         fill_alpha=0.5,
         # legend_position="top_right",  # Adjust legend position

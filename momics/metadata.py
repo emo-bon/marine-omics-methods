@@ -128,6 +128,11 @@ def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFra
         pd.DataFrame: The filtered DataFrame.
     """
     # filter columns names of df which are in the filtered metadata
+
+    assert "source_mat_id" in filtered_metadata.columns, (
+        "The filtered metadata does not contain the 'source_mat_id' column."
+    )
+
     cols_to_keep = list(
         [
             col
