@@ -37,20 +37,21 @@ def pivot_taxonomic_data(
     """
     # Select relevant columns
     # fmt: off
-    df["taxonomic_concat"] = (
-        df["ncbi_tax_id"].astype(str) +
-        ";sk_" + df["superkingdom"].fillna("") +
-        ";k_" + df["kingdom"].fillna("") +
-        ";p_" + df["phylum"].fillna("") +
-        ";c_" + df["class"].fillna("") +
-        ";o_" + df["order"].fillna("") +
-        ";f_" + df["family"].fillna("") +
-        ";g_" + df["genus"].fillna("") +
-        ";s_" + df["species"].fillna("")
+    df1 = df.copy()
+    df1["taxonomic_concat"] = (
+        df1["ncbi_tax_id"].astype(str) +
+        ";sk_" + df1["superkingdom"].fillna("") +
+        ";k_" + df1["kingdom"].fillna("") +
+        ";p_" + df1["phylum"].fillna("") +
+        ";c_" + df1["class"].fillna("") +
+        ";o_" + df1["order"].fillna("") +
+        ";f_" + df1["family"].fillna("") +
+        ";g_" + df1["genus"].fillna("") +
+        ";s_" + df1["species"].fillna("")
     )
     # fmt: on
     pivot_table = (
-        df.pivot_table(
+        df1.pivot_table(
             index=["ncbi_tax_id", "taxonomic_concat"],
             columns="ref_code",
             values="abundance",

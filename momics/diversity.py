@@ -44,12 +44,13 @@ def run_permanova(
     else:
         filtered_metadata = metadata[metadata[permanova_factor].isin(permanova_group)]
 
-    if "ref_code" not in filtered_metadata.columns:
-        raise KeyError("The 'ref_code' column is missing from filtered metadata.")
+    assert "source_mat_id" in filtered_metadata.columns, "The 'source_mat_id' column is missing from filtered metadata."
+
+    # TODO: fix presence of source_mat_id in data first
+    # assert "source_mat_id" in data.columns, "The 'source_mat_id' column is missing from data."
 
     # Match data and metadata samples
-    matched_data = data[filtered_metadata["ref_code"]].T
-    abundance_matrix = matched_data
+    abundance_matrix = data[filtered_metadata["ref_code"]].T
 
     permanova_results = {}
     # factors_to_test = permanova_additional_factors
@@ -158,13 +159,13 @@ def calculate_alpha_diversity(df: pd.DataFrame, factors: pd.DataFrame) -> pd.Dat
     # Calculate Shannon index only from the selected columns
     shannon_values = calculate_shannon_index(df[numeric_columns])
 
-    # Create DataFrame with Shannon index and ref_code
+    # Create DataFrame with Shannon index and source_mat_id
     alpha_diversity_df = pd.DataFrame(
-        {"ref_code": df["ref_code"], "Shannon": shannon_values}
+        {"source_mat_id": df["source_mat_id"], "Shannon": shannon_values}
     )
 
     # Merge with factors
-    alpha_diversity_df = alpha_diversity_df.merge(factors, on="ref_code")
+    alpha_diversity_df = alpha_diversity_df.merge(factors, on="source_mat_id")
 
     return alpha_diversity_df
 
@@ -215,8 +216,8 @@ def beta_diversity_parametrized(
 # helper functions #
 ####################
 def update_subset_indicator(indicator, df):
-    """Update the subset indicator with the number of unique ref_codes."""
-    indicator.value = df["ref_code"].nunique()
+    """Update the subset indicator with the number of unique source_mat_ids."""
+    indicator.value = df["source_mat_id"].nunique()
 
 
 def update_taxa_count_indicator(indicator, df):
