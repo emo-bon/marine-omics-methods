@@ -2,7 +2,7 @@
 Marine omics methods
 ****************************************************
 
-These package currently supports FAIR-EASE [pilot demos](https://github.com/palec87/momics-demos), but eventually it can serve for general purpose manipulation of metagenomic data, locally and in VREs.
+These package currently supports FAIR-EASE [pilot demos](https://github.com/emo-bon/momics-demos), but eventually it can serve for general purpose manipulation of metagenomic data, locally and in VREs.
 
 The idea is to provide testable methods to allow as much flexibility and remixing of the functionalities provided
 
