@@ -205,24 +205,6 @@ def aggregate_by_taxonomic_level(df: pd.DataFrame, level: str) -> pd.DataFrame:
     return df_grouped
 
 
-# def remove_high_taxa(df: pd.DataFrame, tax_level: str = "phylum") -> pd.DataFrame:
-#     """
-#     Remove high level taxa from the dataframe.
-
-#     Args:
-#         df (pd.DataFrame): DataFrame containing taxonomic data.
-#         tax_level (str): The taxonomic level to filter by (e.g., 'phylum', 'class', 'order', etc.).
-
-#     Returns:
-#         pd.DataFrame: DataFrame with rows where the specified taxonomic level is not None.
-#     """
-#     if tax_level not in df.columns:
-#         raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
-
-#     # Filter out rows where the taxonomic level is None or NaN
-#     return df[~df[tax_level].isna()].copy()
-
-
 def remove_high_taxa(df: pd.DataFrame, taxonomy_ranks: list, tax_level: str = "phylum", strict: bool = True) -> pd.DataFrame:
     """
     Remove high level taxa from the dataframe.
@@ -360,6 +342,42 @@ def prevalence_cutoff(
     # Reset the index
     filtered = filtered.reset_index(drop=True)
     return filtered
+
+
+def prevalence_cutoff_taxonomy(
+    df: pd.DataFrame, percent: float = 10
+    ) -> pd.DataFrame:
+    """
+    Apply a prevalence cutoff to the taxonomy DataFrame, which is not pivoted, removing
+    features taxa with low abundance in each of the samples separately.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing feature abundances.
+        percent (float): The prevalence threshold as a percentage.
+
+    Returns:
+        pd.DataFrame: A filtered DataFrame with low-prevalence features removed.
+    """
+
+    try:
+        del result_df
+    except NameError:
+        pass
+    for ref_code in df['ref_code'].unique():
+        abundance_sum = df[df['ref_code'] == ref_code]['abundance'].sum()
+        threshold = abundance_sum * (percent / 100)
+
+        # new filtered DataFrame
+        df_filtered = df[(df['ref_code'] == ref_code) & (df['abundance'] > threshold)]
+
+        # Concatenate each filtered DataFrame to a result DataFrame
+        if 'result_df' not in locals():
+            result_df = df_filtered.copy()
+        else:
+            result_df = pd.concat([result_df, df_filtered], ignore_index=True)
+    # reset index
+    result_df.reset_index(drop=True, inplace=True)
+    return result_df
 
 
 def rarefy_table(df: pd.DataFrame, depth: int = None, axis: int = 1) -> pd.DataFrame:
