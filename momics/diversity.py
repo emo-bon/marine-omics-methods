@@ -1,6 +1,6 @@
+import logging
 import pandas as pd
 import numpy as np
-import logging
 from typing import List, Dict
 
 import skbio
@@ -10,7 +10,11 @@ from skbio.diversity import beta_diversity
 from skbio.stats.distance import permanova
 from sklearn.metrics import pairwise_distances
 
-logging.getLogger(__name__)
+
+# logger setup
+FORMAT = "%(levelname)s | %(name)s | %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
 
 
 #########################
@@ -85,13 +89,13 @@ def run_permanova(
                 permanova_results[remaining_factor] = permanova_result
                 if verbose:
                     print(f"Factor: {remaining_factor}")
-                    logging.info(f"Factor: {remaining_factor}")
-                    logging.info(
+                    logger.info(f"Factor: {remaining_factor}")
+                    logger.info(
                         f"  F-statistic: {permanova_result['test statistic']:.4f}"
                     )
-                    logging.info(f"  p-value: {permanova_result['p-value']:.4f}\n")
+                    logger.info(f"  p-value: {permanova_result['p-value']:.4f}\n")
         else:
-            logging.info(
+            logger.info(
                 f"Skipping factor '{remaining_factor}' due to unique values in grouping vector."
             )
 

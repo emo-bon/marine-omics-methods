@@ -1,13 +1,22 @@
+import logging
 import pandas as pd
 import numpy as np
+
+from tqdm import tqdm
 from typing import List, Dict
 from statsmodels.stats.multitest import multipletests
 from skbio.stats import subsample_counts
 from skbio.diversity import beta_diversity
 
 
+# logger setup
+FORMAT = "%(levelname)s | %(name)s | %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
+
+
 """
-Some functions inspired by Andrzej Tkacz, must be cleaned up and documented
+Some functions were originally developed by Andrzej Tkacz at CCMAR-Algarve.
 """
 
 
@@ -196,13 +205,34 @@ def aggregate_by_taxonomic_level(df: pd.DataFrame, level: str) -> pd.DataFrame:
     return df_grouped
 
 
-def remove_high_taxa(df: pd.DataFrame, tax_level: str = "phylum") -> pd.DataFrame:
+# def remove_high_taxa(df: pd.DataFrame, tax_level: str = "phylum") -> pd.DataFrame:
+#     """
+#     Remove high level taxa from the dataframe.
+
+#     Args:
+#         df (pd.DataFrame): DataFrame containing taxonomic data.
+#         tax_level (str): The taxonomic level to filter by (e.g., 'phylum', 'class', 'order', etc.).
+
+#     Returns:
+#         pd.DataFrame: DataFrame with rows where the specified taxonomic level is not None.
+#     """
+#     if tax_level not in df.columns:
+#         raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
+
+#     # Filter out rows where the taxonomic level is None or NaN
+#     return df[~df[tax_level].isna()].copy()
+
+
+def remove_high_taxa(df: pd.DataFrame, taxonomy_ranks: list, tax_level: str = "phylum", strict: bool = True) -> pd.DataFrame:
     """
     Remove high level taxa from the dataframe.
 
     Args:
         df (pd.DataFrame): DataFrame containing taxonomic data.
         tax_level (str): The taxonomic level to filter by (e.g., 'phylum', 'class', 'order', etc.).
+        strict (bool): If True, the lower taxa are all mapped to the tax_level.
+            For instance, tax_level='phylum' will map all the more granular assignments (class, order, etc)
+            to the phylum level.
 
     Returns:
         pd.DataFrame: DataFrame with rows where the specified taxonomic level is not None.
@@ -211,7 +241,98 @@ def remove_high_taxa(df: pd.DataFrame, tax_level: str = "phylum") -> pd.DataFram
         raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
 
     # Filter out rows where the taxonomic level is None or NaN
-    return df[~df[tax_level].isna()].copy()
+    df = df[~df[tax_level].isna()].copy()
+    if strict:
+        # unique values at the tax_level
+        unique_taxa = df[tax_level].unique()
+        bad_count = 0
+        unmapped_taxa = []
+        for taxon in tqdm(unique_taxa):
+            tax_id = taxon_in_table(df, taxonomy_ranks, taxon, tax_level)
+            logger.info(f"Taxon: {taxon}, Tax ID: {tax_id}")
+            # now map all the lower taxa to the tax_level
+            if tax_id is None:
+                # No lower taxon for no mapping needed.
+                continue
+
+            if tax_id == -1 and 'unclassified' in taxon:
+                # If the taxon is 'unclassified', we do not map it up.
+                continue
+
+            if tax_id == -1:
+                # bad no mapping possible because I do not have the ncbi tax_id in the current table
+                unmapped_taxa.append(taxon)
+                bad_count += 1
+            else:
+                # mapping here
+                df = map_taxa_up(df, taxon, tax_level, tax_id)
+
+        logger.info(f'Number of bad taxa at {tax_level}: {bad_count}')
+        logger.info(f'Unmapped taxa at {tax_level}: {unmapped_taxa}')
+    return df[df[tax_level].notna()].copy()
+
+
+def taxon_in_table(df: pd.DataFrame, taxonomy_ranks: list, taxon: str, tax_level: str) -> int:
+    """
+    Check if a taxon exists in the DataFrame at the specified taxonomic level.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing taxonomic data.
+        taxon (str): The taxon to check for.
+        tax_level (str): The taxonomic level to check against.
+
+    Returns:
+        int: The index of the taxon in the DataFrame, or -1 if not found.
+    """
+    if tax_level not in df.columns:
+        raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
+
+    lower_taxon = taxonomy_ranks[taxonomy_ranks.index(tax_level) + 1] if taxonomy_ranks.index(tax_level) + 1 < len(taxonomy_ranks) else None
+    if lower_taxon is None:
+        return None
+
+    # Find the indices of all the taxons
+    index = df[df[tax_level] == taxon]['ncbi_tax_id']
+    # check which one has lower taxon None
+    for i in index.index:
+        if pd.isna(df.loc[i, lower_taxon]):
+            logger.info(f"Taxon {taxon} has lower taxon None at index {i}")
+            return df.loc[i, 'ncbi_tax_id']
+    
+    return -1  # Return -1 if the taxon is not found, therefore unknown ncbi_tax_id to map to
+
+
+def map_taxa_up(df: pd.DataFrame, taxon: str, tax_level: str, tax_id: int) -> pd.DataFrame:
+    """
+    Map all lower taxa to the specified taxonomic level in the DataFrame.
+    
+    Args:
+        df (pd.DataFrame): DataFrame containing taxonomic data.
+        taxon (str): The taxon to map up.
+        tax_level (str): The taxonomic level to map to.
+        tax_id (int): The NCBI taxonomic ID to map to.
+
+    Returns:
+        pd.DataFrame: DataFrame with lower taxa mapped to the specified taxonomic level.
+    """
+    # Find the indices of all the taxons
+    index = df[df[tax_level] == taxon]['ncbi_tax_id']
+    index = index[index != tax_id]
+
+    test = df[df[tax_level] == taxon].groupby('ref_code')['abundance'].sum()
+    # display(test.head())
+
+    # replace by data from test
+    for i in test.index:  # ref_codes
+        if i not in df['ref_code'].values:
+            logger.warning(f'ref_code {i} not in the DataFrame, skipping')
+            continue
+        # print(f'Updating abundance for taxon {taxon} with tax_id {tax_id} and ref_code {i}')
+        # Update the abundance for the taxon at the specified tax_id
+        df.loc[(df['ncbi_tax_id'] == tax_id) & (df['ref_code'] == i), 'abundance'] = test[i]
+    # remove rows which are equal to index but not tax_id
+    df = df[~df['ncbi_tax_id'].isin(index)]
+    return df
 
 
 def prevalence_cutoff(
@@ -276,6 +397,36 @@ def rarefy_table(df: pd.DataFrame, depth: int = None, axis: int = 1) -> pd.DataF
         return pd.DataFrame(rarefied, index=df.index)
     else:
         return pd.DataFrame(rarefied, columns=df.columns)
+
+
+
+def fill_taxonomy_placeholders(df: pd.DataFrame, taxonomy_ranks: list) -> pd.DataFrame:
+    """
+    Fill higher missing taxonomy levels in a DataFrame with placeholders
+    like 'unclassified_<lower_rank_value>'.
+
+    No downwards propagation is done, only upwards filling.
+
+    Parameters:
+    - df: pandas DataFrame containing taxonomy columns.
+    - taxonomy_ranks: ordered list of taxonomy column names from higher to lower rank.
+
+    Returns:
+    - df with placeholders filled.
+    """
+    df = df.copy()
+
+    for i in range(2, len(taxonomy_ranks)):
+        lower = taxonomy_ranks[- i + 1]  # lower rank column
+        current = taxonomy_ranks[-i]
+        
+        # Fill missing current-level values using higher-level information
+        df[current] = df.apply(
+            lambda row: f'unclassified_{row[lower]}' if row[current] == '' else row[current],
+            axis=1
+        )
+
+    return df
 
 
 def split_metadata(metadata: pd.DataFrame, factor: str) -> Dict[str, list]:
@@ -416,13 +567,14 @@ def compute_bray_curtis(
     return bray_curtis_df
 
 
-def fdr_pvals(p_spearman_df: pd.DataFrame) -> pd.DataFrame:
+def fdr_pvals(p_spearman_df: pd.DataFrame, pval_cutoff: float) -> pd.DataFrame:
     """
     Apply FDR correction to the p-values DataFrame using Benjamini/Hochberg (non-negative)
     method. This function extracts the upper triangle of the p-values DataFrame.
 
     Args:
         p_spearman_df (pd.DataFrame): DataFrame containing p-values.
+        pval_cutoff (float): P-value cutoff for FDR correction.
 
     Returns:
         pd.DataFrame: DataFrame with FDR corrected p-values.
@@ -436,7 +588,7 @@ def fdr_pvals(p_spearman_df: pd.DataFrame) -> pd.DataFrame:
 
     # Apply FDR correction
     _rejected, pvals_corrected, _, _ = multipletests(
-        pval_array, alpha=0.05, method="fdr_bh"
+        pval_array, alpha=pval_cutoff, method="fdr_bh"
     )
 
     # Map corrected p-values back to a DataFrame
