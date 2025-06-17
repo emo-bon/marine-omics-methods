@@ -296,7 +296,7 @@ def taxon_in_table(df: pd.DataFrame, taxonomy_ranks: list, taxon: str, tax_level
     # check which one has lower taxon None
     for i in index.index:
         if pd.isna(df.loc[i, lower_taxon]):
-            logger.info(f"Taxon {taxon} has lower taxon None at index {i}")
+            # Taxon {taxon} has lower taxon None at index i
             return df.loc[i, 'ncbi_tax_id']
     
     return -1  # Return -1 if the taxon is not found, therefore unknown ncbi_tax_id to map to
@@ -319,17 +319,17 @@ def map_taxa_up(df: pd.DataFrame, taxon: str, tax_level: str, tax_id: int) -> pd
     index = df[df[tax_level] == taxon]['ncbi_tax_id']
     index = index[index != tax_id]
 
-    test = df[df[tax_level] == taxon].groupby('ref_code')['abundance'].sum()
-    # display(test.head())
+    # Aggregate abundance for all rows matching the taxon at the specified taxonomic level, grouped by ref_code
+    abundance_by_ref_code = df[df[tax_level] == taxon].groupby('ref_code')['abundance'].sum()
 
-    # replace by data from test
-    for i in test.index:  # ref_codes
+    for i in abundance_by_ref_code.index:  # ref_codes
         if i not in df['ref_code'].values:
-            logger.warning(f'ref_code {i} not in the DataFrame, skipping')
+            # ref_code i not in the DataFrame, skipping
             continue
-        # print(f'Updating abundance for taxon {taxon} with tax_id {tax_id} and ref_code {i}')
+
         # Update the abundance for the taxon at the specified tax_id
-        df.loc[(df['ncbi_tax_id'] == tax_id) & (df['ref_code'] == i), 'abundance'] = test[i]
+        df.loc[(df['ncbi_tax_id'] == tax_id) & (df['ref_code'] == i), 'abundance'] = abundance_by_ref_code[i]
+
     # remove rows which are equal to index but not tax_id
     df = df[~df['ncbi_tax_id'].isin(index)]
     return df
