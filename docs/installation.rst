@@ -5,6 +5,7 @@ installation
 Install from PyPI
 ========================
 Marine-omics-methods is available on PyPI and can be installed using pip.
+
 .. code-block:: bash
 
     # install manually UDAL data query layer, which is under development and not deployed to PyPI yet
@@ -32,6 +33,3 @@ Or clone and pip install locally afterwards.
     git clone https://github.com/emo-bon/marine-omics-methods.git
     cd marine-omics-methods
     pip install -e .
-
-
-
