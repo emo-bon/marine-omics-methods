@@ -25,6 +25,7 @@ TODO: returns should be plt.figure and not pn.pane.Matplotlib, as already
 implemented for beta_plot_pc() function.
 """
 
+import logging
 from typing import List, Tuple, Dict, Union
 from textwrap import fill
 import numpy as np
@@ -52,6 +53,10 @@ from .utils import (
 PLOT_FACE_COLOR = "#e6e6e6"
 MARKER_SIZE = 16
 
+# logger setup
+FORMAT = "%(levelname)s | %(name)s | %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
 
 ##########
 # HVplot #
@@ -747,7 +752,8 @@ def beta_plot_pc_granular(
     """
     from skbio.diversity import beta_diversity
 
-    beta = beta_diversity("braycurtis", filtered_data.iloc[:, 1:].T)
+    # beta = beta_diversity("braycurtis", filtered_data.iloc[:, 1:].T)
+    beta = beta_diversity("braycurtis", filtered_data.T)
     pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
     explained_variance = (
         pcoa_result.proportion_explained[0],
@@ -756,7 +762,7 @@ def beta_plot_pc_granular(
 
     # Check if metadata index matches PCoA result
     if not set(pcoa_result.samples.index) == set(metadata.index):
-        raise ValueError("Metadata index name does not match PCoA result.")
+        raise ValueError(f"Metadata index name does not match PCoA result. {set(pcoa_result.samples.index) ^ set(metadata.index)}")
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,

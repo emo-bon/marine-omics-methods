@@ -92,9 +92,9 @@ def test_alpha_diversity_parametrized(table_name, col_to_add, sample_factors):
     data_dict = {
         table_name: add_column(data_dict[table_name], col_to_add),
     }
-    assert data_dict[table_name].index.name == sample_factors.index.name, (
-        "The index names of the input DataFrame and metadata do not match."
-    )
+    assert (
+        data_dict[table_name].index.name == sample_factors.index.name
+    ), "The index names of the input DataFrame and metadata do not match."
     print(sample_factors)
     result = alpha_diversity_parametrized(data_dict, table_name, sample_factors)
 

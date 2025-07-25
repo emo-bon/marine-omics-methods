@@ -7,10 +7,17 @@ Hopefully, that will not be the case for ever.
 """
 
 import os
+import logging
 import pandas as pd
 from typing import Dict, List
 from datetime import datetime
 from mgo.udal import UDAL
+
+
+# logger setup
+FORMAT = "%(levelname)s | %(name)s | %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
 
 
 def get_metadata(folder):
@@ -87,6 +94,83 @@ def get_metadata_udal():
     return full_metadata
 
 
+###########################
+## Filter metadata terms ##
+###########################
+"""
+Specific preprocessing for EMO-BON samplesheets to 
+1. Expose only the relevant variables to the user
+2. Rename the variables to be more user-friendly
+"""
+
+
+def clean_metadata(metadata: pd.DataFrame, terms: Dict[str, str]) -> pd.DataFrame:
+    """Clean the metadata DataFrame by filtering and renaming columns.
+    Args:
+        metadata (pd.DataFrame): The metadata DataFrame to clean.
+        terms (Dict[str, str]): A dictionary where keys are original column names and values are new column names.
+    Returns:
+        pd.DataFrame: The cleaned metadata DataFrame with filtered and renamed columns.
+    """
+    metadata = filter_metadata_terms(metadata, list(terms.keys()))
+    metadata = rename_metadata_terms_vre(metadata, terms)
+
+    metadata.set_index("source material ID", inplace=True)
+    metadata.drop(columns=["ref_code"], inplace=True, errors="ignore")
+    return metadata
+
+
+def filter_metadata_terms(df: pd.DataFrame, terms: list) -> pd.DataFrame:
+    """Filter the metadata terms in the DataFrame.
+    Args:
+        df (pd.DataFrame): The DataFrame containing metadata.
+        terms (list): A list of terms to keep in the DataFrame.
+    Returns:
+        pd.DataFrame: The DataFrame filtered to only include the specified terms.
+    """
+    return df[terms]
+
+
+def rename_metadata_terms_vre(df: pd.DataFrame, hash: Dict[str, str]) -> pd.DataFrame:
+    """Rename metadata terms to make names more readable to the user.
+    Args:
+        df (pd.DataFrame): The DataFrame containing metadata.
+        hash (Dict[str, str]): A dictionary where keys are original column names and values are new column names.
+    Returns:
+        pd.DataFrame: The DataFrame with renamed columns.
+    """
+    df = df.rename(columns=hash)
+    return df
+
+
+def merge_source_mat_id_to_data(
+    df_dict: Dict[str, pd.DataFrame], metadata: pd.DataFrame
+) -> Dict[str, pd.DataFrame]:
+    """
+    Merge the 'source_mat_id' from metadata to each DataFrame in df_dict based on 'ref_code'.
+    This function assumes that each DataFrame in df_dict has a 'ref_code' column that matches the 'ref_code' in metadata.
+    Args:
+        df_dict (Dict[str, pd.DataFrame]): A dictionary where keys are DataFrame names and values are DataFrames.
+        metadata (pd.DataFrame): The metadata DataFrame containing 'source_mat_id' and 'ref_code' columns.
+    Returns:
+        Dict[str, pd.DataFrame]: A dictionary where each DataFrame has been merged with 'source_mat_id' from metadata.
+    """
+    for name, df in df_dict.items():
+        if "ref_code" in df.columns:
+            df = df.merge(
+                metadata[["source_mat_id", "ref_code"]], on="ref_code", how="left"
+            )
+            df.rename(columns={"source_mat_id": "source material ID"}, inplace=True)
+            df.drop(columns=["ref_code"], inplace=True)
+            df = df.set_index("source material ID")
+            df_dict[name] = df
+        else:
+            logger.warning(
+                f"Table {name} does not have 'ref_code' column, skipping merge."
+            )
+    return df_dict
+
+
 #####################
 ## Filter metadata ##
 #####################
@@ -119,7 +203,7 @@ def filter_metadata_table(
 def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFrame:
     """
     Filter the DataFrame based on the filtered metadata.
-    This function filters the DataFrame columns based on the 'ref_code' values in the filtered metadata.
+    This function filters the DataFrame columns based on the `index` values in the filtered metadata.
 
     Args:
         df (pd.DataFrame): The DataFrame to filter.
@@ -127,17 +211,11 @@ def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFra
     Returns:
         pd.DataFrame: The filtered DataFrame.
     """
-    # filter columns names of df which are in the filtered metadata
-
-    assert (
-        "source_mat_id" in filtered_metadata.columns
-    ), "The filtered metadata does not contain the 'source_mat_id' column."
-
     cols_to_keep = list(
         [
             col
             for col in df.columns.str.strip()
-            if col in filtered_metadata["ref_code"].to_list()
+            if col in filtered_metadata.index.to_list()
         ]
     )
 

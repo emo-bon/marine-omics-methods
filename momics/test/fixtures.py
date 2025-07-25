@@ -20,7 +20,7 @@ def sample_tables_dict(name="sample_table", add_abundance=False):
     }
     if add_abundance:
         data["abundance"] = [50, 0, 5]
-    
+
     out = pd.DataFrame(data)
     out = out.set_index("ref_code")
     return {name: out}

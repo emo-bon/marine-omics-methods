@@ -62,7 +62,8 @@ def pivot_taxonomic_data(
     pivot_table = (
         df1.pivot_table(
             index=["ncbi_tax_id", "taxonomic_concat"],
-            columns="ref_code",
+            # columns="ref_code",
+            columns=df1.index,
             values="abundance",
         )
         .fillna(0)
