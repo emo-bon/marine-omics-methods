@@ -45,6 +45,9 @@ from .diversity import (
     alpha_diversity_parametrized,
     beta_diversity_parametrized,
 )
+from .utils import (
+    check_index_names,
+)
 
 PLOT_FACE_COLOR = "#e6e6e6"
 MARKER_SIZE = 16
@@ -74,7 +77,6 @@ def hvplot_heatmap(
         xlabel="Sample",
         ylabel="Sample",
         title=f"Beta Diversity ({taxon})",
-        hover_cols=['source_mat_id'],
     ).opts(
         xticks=0,  # remove xticks labels
         yticks=0,  # remove yticks labels
@@ -117,7 +119,6 @@ def hvplot_alpha_diversity(alpha: pd.DataFrame, factor: str) -> hv.element.Bars:
 
     # Create the horizontal bar plot using hvplot
     fig = alpha.hvplot.barh(
-        x="source_mat_id",
         y="Shannon",
         xlabel="Sample",
         ylabel="Shannon Index",
@@ -168,7 +169,7 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
         ylabel="Shannon Index",
         title=f"Average Shannon Index Grouped by {factor}",
         color=factor,  # Use the factor column for coloring
-        hover_cols=['source_mat_id'],
+        hover_cols=[alpha.index.name],
     ).opts(
         cmap=color_mapper.palette,  # Apply the color mapper's palette
         show_legend=False,
@@ -180,7 +181,9 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
 
 
 def hvplot_plot_pcoa_black(
-    pcoa_df: pd.DataFrame, color_by: str = None, explained_variance: Tuple[float, float] = None
+    pcoa_df: pd.DataFrame,
+    color_by: str = None,
+    explained_variance: Tuple[float, float] = None,
 ) -> hv.element.Scatter:
     """
     Plots a PCoA plot with optional coloring using hvplot.
@@ -227,13 +230,16 @@ def hvplot_plot_pcoa_black(
                 high=pcoa_df[color_by].max(),
             )
 
+    index_name = pcoa_df.index.name if pcoa_df.index.name else "sample"
+    pcoa_df = pcoa_df.reset_index()  # Ensure index is a column for hvplot
+
     if pcoa_df[color_by].count() >= 0:
         # Create the scatter plot using hvplot
         fig = pcoa_df.hvplot.scatter(
             x="PC1",
             y="PC2",
             color=color_by,  # Use the factor column for coloring
-            hover_cols=["source_mat_id", "PC1", "PC2"],
+            hover_cols=[index_name, "PC1", "PC2"],
         )
 
     else:
@@ -241,7 +247,7 @@ def hvplot_plot_pcoa_black(
             x="PC1",
             y="PC2",
             color="black",  # Use color_by or black for coloring
-            hover_cols=["source_mat_id", "PC1", "PC2"],
+            hover_cols=[index_name, "PC1", "PC2"],
         )
 
     if explained_variance:
@@ -255,10 +261,9 @@ def hvplot_plot_pcoa_black(
             xlabel="PC1",
             ylabel="PC2",
         )
-    assert 'source_mat_id' in pcoa_df.columns, (f"Missing 'source_mat_id' column in PCoA DataFrame")
-    assert 'PC1' in pcoa_df.columns, (f"Missing 'PC1' column in PCoA DataFrame")
-    assert 'PC2' in pcoa_df.columns, (f"Missing 'PC2' column in PCoA DataFrame")
-    
+    assert "PC1" in pcoa_df.columns, f"Missing 'PC1' column in PCoA DataFrame"
+    assert "PC2" in pcoa_df.columns, f"Missing 'PC2' column in PCoA DataFrame"
+
     fig = fig.opts(
         cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
         title=f"PCoA colored by {color_by}, valid values: ({valid_perc:.2f}%)",
@@ -292,10 +297,8 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
 
     if color_by is not None:
         labels = fold_legend_labels_from_series(pcoa_df[color_by], 35)
-        print(pcoa_df[color_by].dtype)
         # BETA created now only for numerical
         if pcoa_df[color_by].dtype == "object":
-            print("categorical")
             sns.scatterplot(
                 data=pcoa_df,
                 x="PC1",
@@ -306,7 +309,6 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
             )
             ax = change_legend_labels(ax, labels)
         else:
-            print("numerical", pcoa_df[color_by].count(), len(pcoa_df[color_by]))
             flag_massage = True
             perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
             scatter = plt.scatter(
@@ -318,7 +320,6 @@ def plot_pcoa_black(pcoa_df: pd.DataFrame, color_by: str = None) -> plt.Figure:
             )
             plt.colorbar(scatter, label=color_by)
     else:
-        print("single color")
         plt.scatter(pcoa_df["PC1"], pcoa_df["PC2"], color="black")
 
     ax.set_xlabel("PC1")
@@ -349,7 +350,7 @@ def mpl_alpha_diversity(alpha_df: pd.DataFrame, factor: str = None) -> plt.Figur
     ax = fig.add_subplot(111)
     sns.barplot(
         data=alpha_df,
-        x="source_mat_id",
+        x=alpha_df.index,
         y="Shannon",
         hue=factor,
         palette="coolwarm",
@@ -619,7 +620,6 @@ def av_alpha_plot(
         Union[pn.pane.Matplotlib, pn.pane.HoloViews]: A pane containing the average alpha diversity plot.
     """
     alpha = alpha_diversity_parametrized(tables_dict, table_name, metadata)
-    assert 'source_mat_id' in alpha.columns, (f"Missing 'source_mat_id' column in alpha DataFrame")
     # TODO: this will not work, because it gets grouped in mpl_average_per_factor I think
     hash_sort = {"factor": factor, "values": "Shannon"}
     alpha = alpha.sort_values(by=hash_sort[order])
@@ -705,20 +705,26 @@ def beta_plot_pc(
     beta = beta_diversity_parametrized(
         tables_dict[table_name], taxon=taxon, metric="braycurtis"
     )
-    pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
+    pcoa_result = pcoa(beta, method="eigh")
     explained_variance = (
         pcoa_result.proportion_explained[0],
-        pcoa_result.proportion_explained[1]
+        pcoa_result.proportion_explained[1],
     )
+    if not set(pcoa_result.samples.index) == set(metadata.index):
+        raise ValueError("Metadata index name does not match PCoA result.")
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,
         left_index=True,
-        right_on="ref_code",
+        right_index=True,
         how="inner",
     )
-    assert 'source_mat_id' in pcoa_df.columns, (f"Missing 'source_mat_id' column in PCoA DataFrame")
-    return hvplot_plot_pcoa_black(pcoa_df, color_by=factor, explained_variance=explained_variance), explained_variance
+    return (
+        hvplot_plot_pcoa_black(
+            pcoa_df, color_by=factor, explained_variance=explained_variance
+        ),
+        explained_variance,
+    )
 
 
 def beta_plot_pc_granular(
@@ -747,15 +753,24 @@ def beta_plot_pc_granular(
         pcoa_result.proportion_explained[0],
         pcoa_result.proportion_explained[1],
     )
+
+    # Check if metadata index matches PCoA result
+    if not set(pcoa_result.samples.index) == set(metadata.index):
+        raise ValueError("Metadata index name does not match PCoA result.")
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,
         left_index=True,
-        right_on="ref_code",
+        right_index=True,
         how="inner",
     )
 
-    return hvplot_plot_pcoa_black(pcoa_df, color_by=factor, explained_variance=explained_variance), explained_variance
+    return (
+        hvplot_plot_pcoa_black(
+            pcoa_df, color_by=factor, explained_variance=explained_variance
+        ),
+        explained_variance,
+    )
 
 
 def mpl_plot_heatmap(df: pd.DataFrame, taxon: str, norm=False) -> plt.Figure:

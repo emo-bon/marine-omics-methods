@@ -205,7 +205,12 @@ def aggregate_by_taxonomic_level(df: pd.DataFrame, level: str) -> pd.DataFrame:
     return df_grouped
 
 
-def remove_high_taxa(df: pd.DataFrame, taxonomy_ranks: list, tax_level: str = "phylum", strict: bool = True) -> pd.DataFrame:
+def remove_high_taxa(
+    df: pd.DataFrame,
+    taxonomy_ranks: list,
+    tax_level: str = "phylum",
+    strict: bool = True,
+) -> pd.DataFrame:
     """
     Remove high level taxa from the dataframe.
 
@@ -236,7 +241,7 @@ def remove_high_taxa(df: pd.DataFrame, taxonomy_ranks: list, tax_level: str = "p
                 # No lower taxon for no mapping needed.
                 continue
 
-            if tax_id == -1 and 'unclassified' in taxon.lower():
+            if tax_id == -1 and "unclassified" in taxon.lower():
                 # If the taxon is 'unclassified', we do not map it up.
                 continue
 
@@ -248,12 +253,14 @@ def remove_high_taxa(df: pd.DataFrame, taxonomy_ranks: list, tax_level: str = "p
                 # mapping here
                 df = map_taxa_up(df, taxon, tax_level, tax_id)
 
-        logger.info(f'Number of bad taxa at {tax_level}: {bad_count}')
-        logger.info(f'Unmapped taxa at {tax_level}: {unmapped_taxa}')
+        logger.info(f"Number of bad taxa at {tax_level}: {bad_count}")
+        logger.info(f"Unmapped taxa at {tax_level}: {unmapped_taxa}")
     return df[df[tax_level].notna()].copy()
 
 
-def taxon_in_table(df: pd.DataFrame, taxonomy_ranks: list, taxon: str, tax_level: str) -> int:
+def taxon_in_table(
+    df: pd.DataFrame, taxonomy_ranks: list, taxon: str, tax_level: str
+) -> int:
     """
     Check if a taxon exists in the DataFrame at the specified taxonomic level.
 
@@ -268,25 +275,33 @@ def taxon_in_table(df: pd.DataFrame, taxonomy_ranks: list, taxon: str, tax_level
     if tax_level not in df.columns:
         raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
 
-    lower_taxon = taxonomy_ranks[taxonomy_ranks.index(tax_level) + 1] if taxonomy_ranks.index(tax_level) + 1 < len(taxonomy_ranks) else None
+    lower_taxon = (
+        taxonomy_ranks[taxonomy_ranks.index(tax_level) + 1]
+        if taxonomy_ranks.index(tax_level) + 1 < len(taxonomy_ranks)
+        else None
+    )
     if lower_taxon is None:
         return None
 
     # Find the indices of all the taxons
-    index = df[df[tax_level] == taxon]['ncbi_tax_id']
+    index = df[df[tax_level] == taxon]["ncbi_tax_id"]
     # check which one has lower taxon None
     for i in index.index:
         if pd.isna(df.loc[i, lower_taxon]):
             # Taxon {taxon} has lower taxon None at index i
-            return df.loc[i, 'ncbi_tax_id']
-    
-    return -1  # Return -1 if the taxon is not found, therefore unknown ncbi_tax_id to map to
+            return df.loc[i, "ncbi_tax_id"]
+
+    return (
+        -1
+    )  # Return -1 if the taxon is not found, therefore unknown ncbi_tax_id to map to
 
 
-def map_taxa_up(df: pd.DataFrame, taxon: str, tax_level: str, tax_id: int) -> pd.DataFrame:
+def map_taxa_up(
+    df: pd.DataFrame, taxon: str, tax_level: str, tax_id: int
+) -> pd.DataFrame:
     """
     Map all lower taxa to the specified taxonomic level in the DataFrame.
-    
+
     Args:
         df (pd.DataFrame): DataFrame containing taxonomic data.
         taxon (str): The taxon to map up.
@@ -297,22 +312,26 @@ def map_taxa_up(df: pd.DataFrame, taxon: str, tax_level: str, tax_id: int) -> pd
         pd.DataFrame: DataFrame with lower taxa mapped to the specified taxonomic level.
     """
     # Find the indices of all the taxons
-    index = df[df[tax_level] == taxon]['ncbi_tax_id']
+    index = df[df[tax_level] == taxon]["ncbi_tax_id"]
     index = index[index != tax_id]
 
     # Aggregate abundance for all rows matching the taxon at the specified taxonomic level, grouped by ref_code
-    abundance_by_ref_code = df[df[tax_level] == taxon].groupby('ref_code')['abundance'].sum()
+    abundance_by_ref_code = (
+        df[df[tax_level] == taxon].groupby("ref_code")["abundance"].sum()
+    )
 
     for i in abundance_by_ref_code.index:  # ref_codes
-        if i not in df['ref_code'].values:
+        if i not in df["ref_code"].values:
             # ref_code i not in the DataFrame, skipping
             continue
 
         # Update the abundance for the taxon at the specified tax_id
-        df.loc[(df['ncbi_tax_id'] == tax_id) & (df['ref_code'] == i), 'abundance'] = abundance_by_ref_code[i]
+        df.loc[(df["ncbi_tax_id"] == tax_id) & (df["ref_code"] == i), "abundance"] = (
+            abundance_by_ref_code[i]
+        )
 
     # remove rows which are equal to index but not tax_id
-    df = df[~df['ncbi_tax_id'].isin(index)]
+    df = df[~df["ncbi_tax_id"].isin(index)]
     return df
 
 
@@ -344,9 +363,7 @@ def prevalence_cutoff(
     return filtered
 
 
-def prevalence_cutoff_taxonomy(
-    df: pd.DataFrame, percent: float = 10
-    ) -> pd.DataFrame:
+def prevalence_cutoff_taxonomy(df: pd.DataFrame, percent: float = 10) -> pd.DataFrame:
     """
     Apply a prevalence cutoff to the taxonomy DataFrame, which is not pivoted, removing
     features taxa with low abundance in each of the samples separately.
@@ -363,15 +380,15 @@ def prevalence_cutoff_taxonomy(
         del result_df
     except NameError:
         pass
-    for ref_code in df['ref_code'].unique():
-        abundance_sum = df[df['ref_code'] == ref_code]['abundance'].sum()
+    for ref_code in df["ref_code"].unique():
+        abundance_sum = df[df["ref_code"] == ref_code]["abundance"].sum()
         threshold = abundance_sum * (percent / 100)
 
         # new filtered DataFrame
-        df_filtered = df[(df['ref_code'] == ref_code) & (df['abundance'] > threshold)]
+        df_filtered = df[(df["ref_code"] == ref_code) & (df["abundance"] > threshold)]
 
         # Concatenate each filtered DataFrame to a result DataFrame
-        if 'result_df' not in locals():
+        if "result_df" not in locals():
             result_df = df_filtered.copy()
         else:
             result_df = pd.concat([result_df, df_filtered], ignore_index=True)
@@ -416,7 +433,6 @@ def rarefy_table(df: pd.DataFrame, depth: int = None, axis: int = 1) -> pd.DataF
         return pd.DataFrame(rarefied, columns=df.columns)
 
 
-
 def fill_taxonomy_placeholders(df: pd.DataFrame, taxonomy_ranks: list) -> pd.DataFrame:
     """
     Fill higher missing taxonomy levels in a DataFrame with placeholders
@@ -434,13 +450,15 @@ def fill_taxonomy_placeholders(df: pd.DataFrame, taxonomy_ranks: list) -> pd.Dat
     df = df.copy()
 
     for i in range(2, len(taxonomy_ranks)):
-        lower = taxonomy_ranks[- i + 1]  # lower rank column
+        lower = taxonomy_ranks[-i + 1]  # lower rank column
         current = taxonomy_ranks[-i]
-        
+
         # Fill missing current-level values using higher-level information
         df[current] = df.apply(
-            lambda row: f'unclassified_{row[lower]}' if row[current] == '' else row[current],
-            axis=1
+            lambda row: (
+                f"unclassified_{row[lower]}" if row[current] == "" else row[current]
+            ),
+            axis=1,
         )
 
     return df

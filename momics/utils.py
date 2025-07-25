@@ -4,6 +4,8 @@ import psutil
 import logging
 from IPython import get_ipython
 
+import pandas as pd
+
 
 #####################
 # Environment setup #
@@ -99,6 +101,24 @@ def reconfig_logger(format=FORMAT, level=logging.INFO):
     logging.getLogger("tornado.access").propagate = False
 
     logging.info("Logging.basicConfig completed successfully")
+
+
+##############
+# Dataframes #
+##############
+# check if two dataframes have the same index name
+def check_index_names(df1: pd.DataFrame, df2: pd.DataFrame) -> bool:
+    """
+    Check if two DataFrames have the same index name.
+
+    Args:
+        df1 (pd.DataFrame): The first DataFrame.
+        df2 (pd.DataFrame): The second DataFrame.
+
+    Returns:
+        bool: True if both DataFrames have the same index name, False otherwise.
+    """
+    return df1.index.name == df2.index.name
 
 
 #####################
