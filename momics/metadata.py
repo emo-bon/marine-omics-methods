@@ -162,7 +162,10 @@ def merge_source_mat_id_to_data(
             )
             df.rename(columns={"source_mat_id": "source material ID"}, inplace=True)
             df.drop(columns=["ref_code"], inplace=True)
-            df = df.set_index("source material ID")
+            if name.lower() in ["lsu", "ssu"]:
+                df = df.set_index(["source material ID", "ncbi_tax_id"])
+            else:
+                df = df.set_index("source material ID")
             df_dict[name] = df
         else:
             logger.warning(
@@ -227,29 +230,34 @@ def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFra
 ## Enhance metadata ##
 ######################
 def enhance_metadata(
-    metadata: pd.DataFrame, df_validation: pd.DataFrame
+    metadata: pd.DataFrame, df_validation: pd.DataFrame = None
 ) -> pd.DataFrame:
     """
     Enhance the metadata DataFrame by processing the 'collection_date' column and extracting the season.
-    This function also filters the metadata based on the 'ref_code' values in the df_validation DataFrame.
+    This function also optionally filters the metadata based on the 'ref_code' values in the df_validation DataFrame.
 
     Args:
         metadata (pd.DataFrame): The metadata DataFrame to enhance.
-        df_validation (pd.DataFrame): The DataFrame containing valid samples for filtering.
+        df_validation (pd.DataFrame, optional): The DataFrame containing valid samples for filtering.
+    
     Returns:
         pd.DataFrame: The enhanced metadata DataFrame.
     """
-    metadata = process_collection_date(metadata)
-    metadata = extract_season(metadata)
+    new_columns = []
+    metadata, cols = process_collection_date(metadata)
+    new_columns.extend(cols)
+    metadata, cols = extract_season(metadata)
+    new_columns.extend(cols)
 
-    # Filter the metadata on the 'ref_code' only for entries that are in df_valid
-    metadata = metadata[metadata["ref_code"].isin(df_validation["ref_code"])]
+    if df_validation is not None:
+        # Filter the metadata on the 'ref_code' only for entries that are in df_valid
+        metadata = metadata[metadata["ref_code"].isin(df_validation["ref_code"])]
 
-    missing = df_validation[~df_validation["ref_code"].isin(metadata["ref_code"])]
-    assert len(missing) == 0, "Missing samples in the metadata"
-    assert len(metadata) == len(
-        df_validation
-    ), "Filtered metadata does not match the valid samples"
+        missing = df_validation[~df_validation["ref_code"].isin(metadata["ref_code"])]
+        assert len(missing) == 0, "Missing samples in the metadata"
+        assert len(metadata) == len(
+            df_validation
+        ), "Filtered metadata does not match the valid samples"
 
     # add column to identify properly the replicates
     metadata["replicate_info"] = (
@@ -261,8 +269,8 @@ def enhance_metadata(
         + "_"
         + metadata["size_frac"].astype(str)
     )
-
-    return metadata
+    new_columns.append("replicate_info")
+    return metadata, new_columns
 
 
 def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
@@ -278,6 +286,7 @@ def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The updated metadata DataFrame with new columns for year, month, and day.
     """
+    new_columns = []
     # Convert the 'collection_date' column to datetime
     metadata["collection_date"] = metadata["collection_date"].apply(
         lambda x: datetime.strptime(x, "%Y-%m-%d") if x is not None else None
@@ -286,10 +295,13 @@ def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
     metadata["year"] = metadata["collection_date"].apply(
         lambda x: x.year if x is not None else None
     )
+    new_columns.append("year")
     # Extract the month from the 'collection_date' column
     metadata["month"] = metadata["collection_date"].apply(
         lambda x: x.month if x is not None else None
     )
+    new_columns.append("month")
+
     # Convert month to month name
     metadata["month_name"] = metadata["month"].apply(
         lambda x: (
@@ -298,11 +310,13 @@ def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
             else None
         )
     )
+    new_columns.append("month_name")
     # Extract the day from the 'collection_date' column
     metadata["day"] = metadata["collection_date"].apply(
         lambda x: x.day if x is not None else None
     )
-    return metadata
+    new_columns.append("day")
+    return metadata, new_columns
 
 
 def extract_season(metadata: pd.DataFrame) -> pd.DataFrame:
@@ -319,7 +333,7 @@ def extract_season(metadata: pd.DataFrame) -> pd.DataFrame:
     """
     # Extract the season based on the month and day
     metadata["season"] = metadata.apply(extract_season_single, axis=1)
-    return metadata
+    return metadata, ["season"]
 
 
 def extract_season_single(row):

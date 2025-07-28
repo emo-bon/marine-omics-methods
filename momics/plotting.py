@@ -58,6 +58,7 @@ FORMAT = "%(levelname)s | %(name)s | %(message)s"
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
+
 ##########
 # HVplot #
 ##########
@@ -762,7 +763,9 @@ def beta_plot_pc_granular(
 
     # Check if metadata index matches PCoA result
     if not set(pcoa_result.samples.index) == set(metadata.index):
-        raise ValueError(f"Metadata index name does not match PCoA result. {set(pcoa_result.samples.index) ^ set(metadata.index)}")
+        raise ValueError(
+            f"Metadata index name does not match PCoA result. {set(pcoa_result.samples.index) ^ set(metadata.index)}"
+        )
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,

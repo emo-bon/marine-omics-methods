@@ -1,0 +1,11 @@
+ref_code,ncbi_tax_id,abundance,superkingdom,kingdom,phylum,class,order,family,genus,species
+EMOBON00084,2157,7.0,Archaea,,,,,,,
+EMOBON00084,1801616,1.0,Archaea,,Candidatus_Woesearchaeota,,,,,
+EMOBON00084,28890,1.0,Archaea,,Euryarchaeota,,,,,
+EMOBON00084,183968,1.0,Archaea,,Euryarchaeota,Thermococci,,,,
+EMOBON00084,192989,3.0,Archaea,,Nanoarchaeota,,,,,
+EMOBON00084,651137,4.0,Archaea,,Thaumarchaeota,,,,,
+EMOBON00084,205957,1.0,Archaea,,Thaumarchaeota,,Cenarchaeales,Cenarchaeaceae,,
+EMOBON00084,46769,3.0,Archaea,,Thaumarchaeota,,Cenarchaeales,Cenarchaeaceae,Cenarchaeum,
+EMOBON00084,338190,129.0,Archaea,,Thaumarchaeota,,Nitrosopumilales,Nitrosopumilaceae,,
+EMOBON00084,338191,2.0,Archaea,,Thaumarchaeota,,Nitrosopumilales,Nitrosopumilaceae,Nitrosopumilus,

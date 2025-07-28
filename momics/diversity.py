@@ -6,7 +6,6 @@ from typing import List, Dict
 import skbio
 from skbio.diversity import beta_diversity
 
-# from skbio.stats.ordination import pcoa
 from skbio.stats.distance import permanova
 from sklearn.metrics import pairwise_distances
 from .utils import (
@@ -52,14 +51,12 @@ def run_permanova(
         filtered_metadata = metadata[metadata[permanova_factor].isin(permanova_group)]
 
     # Match data and metadata samples
-    # abundance_matrix = data[filtered_metadata["ref_code"]].T
     abundance_matrix = data[filtered_metadata.index].T
 
     permanova_results = {}
     # factors_to_test = permanova_additional_factors
     for remaining_factor in permanova_additional_factors:
         factor_metadata = filtered_metadata.dropna(subset=[remaining_factor])
-        # combined_abundance = abundance_matrix.loc[factor_metadata["ref_code"]]
         combined_abundance = abundance_matrix.loc[factor_metadata.index]
 
         # Calculate Bray-Curtis distance matrix
@@ -70,7 +67,6 @@ def run_permanova(
             dissimilarity_matrix, ids=combined_abundance.index
         )
 
-        # factor_metadata = factor_metadata.set_index("ref_code")
         factor_metadata = factor_metadata.loc[
             factor_metadata.index.intersection(distance_matrix_obj.ids)
         ]
@@ -236,13 +232,14 @@ def beta_diversity_parametrized(
 # helper functions #
 ####################
 def update_subset_indicator(indicator, df):
-    """Update the subset indicator with the number of unique source_mat_ids."""
+    """Update the subset indicator with the number of unique `index`_ids."""
     indicator.value = df.index.nunique()
 
 
 def update_taxa_count_indicator(indicator, df):
     """Update the taxa count indicator with the number of unique taxa."""
     indicator.value = df.index.nunique()
+
 
 # I think this is only useful for beta, not alpha diversity
 def diversity_input(

@@ -95,3 +95,14 @@ COL_NAMES_HASH_EMO_BON_VRE = {
     "water_current": "water current (m3/s)",
     "water_current_method": "water current method",
 }
+
+TAXONOMY_RANKS = [
+    "superkingdom",
+    "kingdom",
+    "phylum",
+    "class",
+    "order",
+    "family",
+    "genus",
+    "species",
+]
