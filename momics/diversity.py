@@ -256,13 +256,15 @@ def diversity_input(
     Returns:
         pd.DataFrame: The input for diversity analysis.
     """
-
-    index_name = df.index.name
-    df = df.reset_index()
+    if isinstance(df.index, pd.MultiIndex):
+        index_name = df.index.names[0]
+    else:
+        index_name = df.index.name
+    df1 = df.reset_index()
 
     # Convert DF
     out = pd.pivot_table(
-        df,
+        df1,
         index=index_name,
         columns=taxon,
         values="abundance",
@@ -273,7 +275,7 @@ def diversity_input(
     if kind == "beta":
         out = out.div(out.sum(axis=1), axis=0)
 
-    assert df[taxon].nunique(), out.shape[1]
+    assert df1[taxon].nunique(), out.shape[1]
     return out
 
 

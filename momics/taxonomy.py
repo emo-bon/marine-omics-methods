@@ -44,7 +44,7 @@ def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     # check if table has multiindex
     if isinstance(df.index, pd.MultiIndex):
-        print("try to reconcile the multiindex")
+        logger.debug("try to reconcile the multiindex")
         # if it has multiindex, we need to reset the index
 
         # I want to set it on level 0, so I can use it later
@@ -137,6 +137,11 @@ def separate_taxonomy(
     Returns:
         Dict[str, pd.DataFrame]: A dictionary containing separate DataFrames for Prokaryotes and Eukaryota.
     """
+    # This is not ideal fix, I will reset the index in case of multiindex
+    if isinstance(df.index, pd.MultiIndex):
+        df = df.reset_index()
+        df.set_index("taxonomic_concat", inplace=True)
+
     # Separate rows based on "Bacteria", "Archaea", and "Eukaryota" entries
     prokaryotes_all = df[df.index.str.contains("Bacteria|Archaea", regex=True)]
     eukaryota_all = df[df.index.str.contains("Eukaryota", regex=True)]
@@ -268,14 +273,14 @@ def remove_high_taxa(
         raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
 
     # Filter out rows where the taxonomic level is None or NaN
-    df = df[~df[tax_level].isna()].copy()
+    df1 = df[~df[tax_level].isna()].copy()
     if strict:
         # unique values at the tax_level
-        unique_taxa = df[tax_level].unique()
+        unique_taxa = df1[tax_level].unique()
         bad_count = 0
         unmapped_taxa = []
         for taxon in tqdm(unique_taxa):
-            tax_id = taxon_in_table(df, taxonomy_ranks, taxon, tax_level)
+            tax_id = taxon_in_table(df1, taxonomy_ranks, taxon, tax_level)
             # now map all the lower taxa to the tax_level
             if tax_id is None:
                 # No lower taxon for no mapping needed.
@@ -291,49 +296,13 @@ def remove_high_taxa(
                 bad_count += 1
             else:
                 # mapping here
-                df = map_taxa_up(df, taxon, tax_level, tax_id)
+                df1 = map_taxa_up(df1, taxon, tax_level, tax_id)
 
         logger.info(f"Number of bad taxa at {tax_level}: {bad_count}")
         logger.info(f"Unmapped taxa at {tax_level}: {unmapped_taxa}")
+        return df1[df1[tax_level].notna()]
+    logger.info(f'RETURN: {df[df[tax_level].notna()].head()}')
     return df[df[tax_level].notna()].copy()
-
-
-# def taxon_in_table(
-#     df: pd.DataFrame, taxonomy_ranks: list, taxon: str, tax_level: str
-# ) -> int:
-#     """
-#     Check if a taxon exists in the DataFrame at the specified taxonomic level.
-
-#     Args:
-#         df (pd.DataFrame): DataFrame containing taxonomic data.
-#         taxon (str): The taxon to check for.
-#         tax_level (str): The taxonomic level to check against.
-
-#     Returns:
-#         int: The index of the taxon in the DataFrame, or -1 if not found.
-#     """
-#     if tax_level not in df.columns:
-#         raise ValueError(f"Taxonomic level '{tax_level}' not found in DataFrame.")
-
-#     lower_taxon = (
-#         taxonomy_ranks[taxonomy_ranks.index(tax_level) + 1]
-#         if taxonomy_ranks.index(tax_level) + 1 < len(taxonomy_ranks)
-#         else None
-#     )
-#     if lower_taxon is None:
-#         return None
-
-#     # Find the indices of all the taxons
-#     index = df[df[tax_level] == taxon]["ncbi_tax_id"]
-#     # check which one has lower taxon None
-#     for i in index.index:
-#         if pd.isna(df.loc[i, lower_taxon]):
-#             # Taxon {taxon} has lower taxon None at index i
-#             return df.loc[i, "ncbi_tax_id"]
-
-#     return (
-#         -1
-#     )  # Return -1 if the taxon is not found, therefore unknown ncbi_tax_id to map to
 
 
 def taxon_in_table(
@@ -372,50 +341,6 @@ def taxon_in_table(
 
     # Return -1 if the taxon is not found, therefore unknown ncbi_tax_id to map to
     return -1
-
-
-# def map_taxa_up(
-#     df: pd.DataFrame, taxon: str, tax_level: str, tax_id: int
-# ) -> pd.DataFrame:
-#     """
-#     Map all lower taxa to the specified taxonomic level in the DataFrame.
-
-#     Args:
-#         df (pd.DataFrame): DataFrame containing taxonomic data.
-#         taxon (str): The taxon to map up.
-#         tax_level (str): The taxonomic level to map to.
-#         tax_id (int): The NCBI taxonomic ID to map to.
-
-#     Returns:
-#         pd.DataFrame: DataFrame with lower taxa mapped to the specified taxonomic level.
-#     """
-#     # Find the indices of all the taxons
-#     index = df[df[tax_level] == taxon]["ncbi_tax_id"]
-#     index = index[index != tax_id]
-
-#     # Aggregate abundance for all rows matching the taxon at the specified taxonomic level, grouped by ref_code
-#     # abundance_by_ref_code = (
-#     #     df[df[tax_level] == taxon].groupby("ref_code")["abundance"].sum()
-#     # )
-#     abundance_by_ref_code = (
-#         df[df[tax_level] == taxon]
-#         .groupby(level=df.index.name)["abundance"]
-#         .sum()
-#     )
-
-#     for i in abundance_by_ref_code.index:  # ref_codes
-#         if i not in df.index.values:
-#             # ref_code i not in the DataFrame, skipping
-#             continue
-
-#         # Update the abundance for the taxon at the specified tax_id
-#         df.loc[(df["ncbi_tax_id"] == tax_id) & (df.index == i), "abundance"] = (
-#             abundance_by_ref_code[i]
-#         )
-
-#     # remove rows which are equal to index but not tax_id
-#     df = df[~df["ncbi_tax_id"].isin(index)]
-#     return df
 
 
 def map_taxa_up(
@@ -505,30 +430,34 @@ def prevalence_cutoff_taxonomy(df: pd.DataFrame, percent: float = 10) -> pd.Data
     Returns:
         pd.DataFrame: A filtered DataFrame with low-prevalence features removed.
     """
-
     try:
         del result_df
     except NameError:
         pass
-    # for ref_code in df["ref_code"].unique():
-    #     abundance_sum = df[df["ref_code"] == ref_code]["abundance"].sum()
-    #     threshold = abundance_sum * (percent / 100)
-    for ref_code in df.index.unique():
-        abundance_sum = df.loc[
-            ref_code, "abundance"
-        ].sum()  # if isinstance(df.loc[ref_code, "abundance"], pd.Series) else df.loc[ref_code, "abundance"]
+
+    df1 = df.copy()
+    # If the DataFrame has a MultiIndex, reset index on level 1
+    if isinstance(df1.index, pd.MultiIndex):
+        names = df1.index.names
+        df1 = df1.reset_index(level=1)
+    for index_val in df1.index.unique():
+        abundance_sum = df1.loc[
+            index_val, "abundance"
+        ].sum()
         threshold = abundance_sum * (percent / 100)
 
         # new filtered DataFrame
-        df_filtered = df[(df.index == ref_code) & (df["abundance"] > threshold)]
+        df_filtered = df1[(df1.index == index_val) & (df1["abundance"] > threshold)]
 
         # Concatenate each filtered DataFrame to a result DataFrame
         if "result_df" not in locals():
             result_df = df_filtered.copy()
         else:
-            result_df = pd.concat([result_df, df_filtered], ignore_index=True)
+            result_df = pd.concat([result_df, df_filtered])
     # reset index
-    result_df.reset_index(drop=True, inplace=True)
+    result_df.reset_index(inplace=True)
+    if names:
+        result_df.set_index(names, inplace=True)
     return result_df
 
 

@@ -718,6 +718,7 @@ def beta_plot_pc(
     )
     if not set(pcoa_result.samples.index) == set(metadata.index):
         raise ValueError("Metadata index name does not match PCoA result.")
+
     pcoa_df = pd.merge(
         pcoa_result.samples,
         metadata,
@@ -755,6 +756,7 @@ def beta_plot_pc_granular(
 
     # beta = beta_diversity("braycurtis", filtered_data.iloc[:, 1:].T)
     beta = beta_diversity("braycurtis", filtered_data.T)
+    logger.info(f"Beta diversity shape: {beta}")
     pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
     explained_variance = (
         pcoa_result.proportion_explained[0],
@@ -763,7 +765,7 @@ def beta_plot_pc_granular(
 
     # Check if metadata index matches PCoA result
     if not set(pcoa_result.samples.index) == set(metadata.index):
-        raise ValueError(
+        logger.debug(
             f"Metadata index name does not match PCoA result. {set(pcoa_result.samples.index) ^ set(metadata.index)}"
         )
     pcoa_df = pd.merge(
