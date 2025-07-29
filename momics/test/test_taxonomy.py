@@ -244,8 +244,7 @@ def test_split_metadata():
 
     metadata, added_columns = enhance_metadata(metadata)
     assert isinstance(metadata, pd.DataFrame), "The enhanced metadata should be a DataFrame"
-    assert (added_columns == ['year', 'month', 'month_name', 'day', 'season', 'replicate_info'], 
-            "Unexpected added columns")
+    assert added_columns == ['year', 'month', 'month_name', 'day', 'season', 'replicate_info'], "Unexpected added columns"
     
     # convert added_columns to a dictionary
     added_columns = {col: col.replace("_", " ") for col in added_columns}

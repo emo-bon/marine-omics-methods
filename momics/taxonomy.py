@@ -750,12 +750,17 @@ def fdr_pvals(p_spearman_df: pd.DataFrame, pval_cutoff: float) -> pd.DataFrame:
         pd.DataFrame: DataFrame with FDR corrected p-values.
     """
     # Extract upper triangle p-values
-    pval_array = (
-        p_spearman_df.where(np.triu(np.ones(p_spearman_df.shape), k=1).astype(bool))
-        .stack()
-        .values
-    )
-
+    # Handle MultiIndex for rows/columns if present
+    if isinstance(p_spearman_df.index, pd.MultiIndex) or isinstance(p_spearman_df.columns, pd.MultiIndex):
+        # Use get_level_values(0) to ensure correct shape for np.triu_indices_from
+        mask = np.triu(np.ones(p_spearman_df.shape), k=1).astype(bool)
+        pval_array = p_spearman_df.values[mask]
+    else:
+        pval_array = (
+            p_spearman_df.where(np.triu(np.ones(p_spearman_df.shape), k=1).astype(bool))
+            .stack()
+            .values
+        )
     # Apply FDR correction
     _rejected, pvals_corrected, _, _ = multipletests(
         pval_array, alpha=pval_cutoff, method="fdr_bh"
