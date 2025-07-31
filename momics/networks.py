@@ -71,7 +71,9 @@ def interaction_to_graph_with_pvals(
     return nodes, edges_pos, edges_neg
 
 
-def pairwise_jaccard_lower_triangle(network_results: dict, edge_type: str = 'all') -> pd.DataFrame:
+def pairwise_jaccard_lower_triangle(
+    network_results: dict, edge_type: str = "all"
+) -> pd.DataFrame:
     """
     Calculate pairwise Jaccard similarity for the lower triangle of all group comparisons.
     Returns a DataFrame with columns: group1, group2, jaccard_similarity.
@@ -94,16 +96,16 @@ def pairwise_jaccard_lower_triangle(network_results: dict, edge_type: str = 'all
     pivoted = pd.DataFrame(index=groups, columns=groups)
     # Iterate over all unique pairs (lower triangle, i < j)
     for g1, g2 in itertools.combinations(groups, 2):
-        if edge_type == 'all':
-            edges1 = set(network_results[g1]['graph'].edges())
-            edges2 = set(network_results[g2]['graph'].edges())
+        if edge_type == "all":
+            edges1 = set(network_results[g1]["graph"].edges())
+            edges2 = set(network_results[g2]["graph"].edges())
         else:
             edges1 = set(network_results[g1][edge_type])
             edges2 = set(network_results[g2][edge_type])
         intersection = edges1 & edges2
         union = edges1 | edges2
-        jaccard = len(intersection) / len(union) if len(union) > 0 else float('nan')
-        results.append({'group1': g1, 'group2': g2, 'jaccard_similarity': jaccard})
+        jaccard = len(intersection) / len(union) if len(union) > 0 else float("nan")
+        results.append({"group1": g1, "group2": g2, "jaccard_similarity": jaccard})
         pivoted.loc[g2, g1] = jaccard
 
     return pivoted

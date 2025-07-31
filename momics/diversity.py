@@ -6,9 +6,11 @@ from typing import List, Dict
 import skbio
 from skbio.diversity import beta_diversity
 
-# from skbio.stats.ordination import pcoa
 from skbio.stats.distance import permanova
 from sklearn.metrics import pairwise_distances
+from .utils import (
+    check_index_names,
+)
 
 
 # logger setup
@@ -48,19 +50,14 @@ def run_permanova(
     else:
         filtered_metadata = metadata[metadata[permanova_factor].isin(permanova_group)]
 
-    assert "source_mat_id" in filtered_metadata.columns, "The 'source_mat_id' column is missing from filtered metadata."
-
-    # TODO: fix presence of source_mat_id in data first
-    # assert "source_mat_id" in data.columns, "The 'source_mat_id' column is missing from data."
-
     # Match data and metadata samples
-    abundance_matrix = data[filtered_metadata["ref_code"]].T
+    abundance_matrix = data[filtered_metadata.index].T
 
     permanova_results = {}
     # factors_to_test = permanova_additional_factors
     for remaining_factor in permanova_additional_factors:
         factor_metadata = filtered_metadata.dropna(subset=[remaining_factor])
-        combined_abundance = abundance_matrix.loc[factor_metadata["ref_code"]]
+        combined_abundance = abundance_matrix.loc[factor_metadata.index]
 
         # Calculate Bray-Curtis distance matrix
         dissimilarity_matrix = pairwise_distances(
@@ -70,7 +67,6 @@ def run_permanova(
             dissimilarity_matrix, ids=combined_abundance.index
         )
 
-        factor_metadata = factor_metadata.set_index("ref_code")
         factor_metadata = factor_metadata.loc[
             factor_metadata.index.intersection(distance_matrix_obj.ids)
         ]
@@ -88,7 +84,6 @@ def run_permanova(
                 )
                 permanova_results[remaining_factor] = permanova_result
                 if verbose:
-                    print(f"Factor: {remaining_factor}")
                     logger.info(f"Factor: {remaining_factor}")
                     logger.info(
                         f"  F-statistic: {permanova_result['test statistic']:.4f}"
@@ -163,13 +158,16 @@ def calculate_alpha_diversity(df: pd.DataFrame, factors: pd.DataFrame) -> pd.Dat
     # Calculate Shannon index only from the selected columns
     shannon_values = calculate_shannon_index(df[numeric_columns])
 
-    # Create DataFrame with Shannon index and source_mat_id
+    # Create DataFrame with Shannon values and index of the input DataFrame
     alpha_diversity_df = pd.DataFrame(
-        {"source_mat_id": df["source_mat_id"], "Shannon": shannon_values}
+        {df.index.name: df.index, "Shannon": shannon_values},
     )
+    alpha_diversity_df.set_index(df.index.name, inplace=True)
 
     # Merge with factors
-    alpha_diversity_df = alpha_diversity_df.merge(factors, on="source_mat_id")
+    alpha_diversity_df = alpha_diversity_df.merge(
+        factors, left_index=True, right_index=True
+    )
 
     return alpha_diversity_df
 
@@ -188,10 +186,24 @@ def alpha_diversity_parametrized(
 
     Returns:
         pd.DataFrame: A DataFrame containing the alpha diversity and metadata.
+
+    Raises:
+        ValueError: If the index names of the input DataFrame and metadata do not match.
     """
-    df_alpha_input = alpha_input(tables_dict, table_name).T.sort_values(by="ref_code")
+    df_alpha_input = alpha_input(tables_dict, table_name).T.sort_index()
+
+    # Ensure the index name is set correctly
+    if not check_index_names(df_alpha_input, metadata):
+        raise ValueError(
+            "The index names of the input DataFrame and metadata do not match."
+        )
+
+    # Merge the alpha input DataFrame with metadata
     df_alpha_input = pd.merge(
-        df_alpha_input, metadata, left_index=True, right_on="ref_code"
+        df_alpha_input,
+        metadata,
+        left_index=True,
+        right_index=True,
     )
     alpha = calculate_alpha_diversity(df_alpha_input, metadata)
     return alpha
@@ -220,13 +232,13 @@ def beta_diversity_parametrized(
 # helper functions #
 ####################
 def update_subset_indicator(indicator, df):
-    """Update the subset indicator with the number of unique source_mat_ids."""
-    indicator.value = df["source_mat_id"].nunique()
+    """Update the subset indicator with the number of unique `index`_ids."""
+    indicator.value = df.index.nunique()
 
 
 def update_taxa_count_indicator(indicator, df):
     """Update the taxa count indicator with the number of unique taxa."""
-    indicator.value = len(df)
+    indicator.value = df.index.nunique()
 
 
 # I think this is only useful for beta, not alpha diversity
@@ -244,10 +256,16 @@ def diversity_input(
     Returns:
         pd.DataFrame: The input for diversity analysis.
     """
+    if isinstance(df.index, pd.MultiIndex):
+        index_name = df.index.names[0]
+    else:
+        index_name = df.index.name
+    df1 = df.reset_index()
+
     # Convert DF
     out = pd.pivot_table(
-        df,
-        index="ref_code",
+        df1,
+        index=index_name,
         columns=taxon,
         values="abundance",
         fill_value=0,
@@ -257,7 +275,7 @@ def diversity_input(
     if kind == "beta":
         out = out.div(out.sum(axis=1), axis=0)
 
-    assert df.ncbi_tax_id.nunique(), out.shape[1]
+    assert df1[taxon].nunique(), out.shape[1]
     return out
 
 
@@ -294,26 +312,22 @@ def alpha_input(tables_dict: Dict[str, pd.DataFrame], table_name: str) -> pd.Dat
         table_name (str): The name of the table to process.
 
     Returns:
-        pd.DataFrame: A pivot table with species abundances indexed by the key column and ref_code as columns.
+        pd.DataFrame: A pivot table with species abundances indexed by the key column of the functional table
+            and index column converted to columns.
     """
     key_column = get_key_column(table_name)
-    print("Key column:", key_column)
 
-    # select distinct ref_codes from the dataframe
-    ref_codes = tables_dict[table_name]["ref_code"].unique()
-    print("length of the ref_codes:", len(ref_codes))
+    df = tables_dict[table_name]
+    index_name = df.index.name
+    df = df.reset_index()
+
+    # select distinct index_vals from the dataframe
     out = pd.pivot_table(
-        tables_dict[table_name],
+        df,
         values="abundance",
         index=[key_column],
-        columns=["ref_code"],
+        columns=[index_name],
         aggfunc="sum",
         fill_value=0,
     )
-    print("table shape:", out.shape)
     return out
-
-
-# Example usage
-# alpha_input = diversity_input(df, king='alpha')
-# beta_input = diversity_input(df, king='beta')

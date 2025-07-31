@@ -20,7 +20,10 @@ def sample_tables_dict(name="sample_table", add_abundance=False):
     }
     if add_abundance:
         data["abundance"] = [50, 0, 5]
-    return {name: pd.DataFrame(data)}
+
+    out = pd.DataFrame(data)
+    out = out.set_index("ref_code")
+    return {name: out}
 
 
 def sample_data(name="sample_table", add_abundance=False):
@@ -40,8 +43,10 @@ def sample_factors():
         "ref_code": ["sample1", "sample2", "sample3"],
         "factor1": ["A", "B", "C"],
     }
+    out = pd.DataFrame(factors)
+    out = out.set_index("ref_code")
 
-    return pd.DataFrame(factors)
+    return out
 
 
 @pytest.fixture
@@ -53,7 +58,9 @@ def sample_metadata():
         "ref_code": ["sample1", "sample2", "sample3"],
         "factor1": ["A", "B", "C"],
     }
-    return pd.DataFrame(metadata)
+    metadata = pd.DataFrame(metadata)
+    metadata = metadata.set_index("ref_code")
+    return metadata
 
 
 # @pytest.fixture

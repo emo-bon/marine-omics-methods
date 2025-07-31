@@ -58,13 +58,13 @@ def test_calculate_alpha_diversity(sample_factors):
     assert isinstance(result, pd.DataFrame), "The result should be a DataFrame"
 
     # Check if the result contains the expected columns
-    expected_columns = ["ref_code", "Shannon", "factor1"]
+    expected_columns = ["Shannon", "factor1"]
     assert all(
         col in result.columns for col in expected_columns
     ), f"Expected columns {expected_columns}, but got {result.columns.tolist()}"
 
     # Check if the Shannon index values are calculated correctly
-    expected_shannon = data.apply(lambda row: shannon_index(row[1:]), axis=1)
+    expected_shannon = data.apply(lambda row: shannon_index(row[:]), axis=1)
     assert np.isclose(result["Shannon"], expected_shannon, equal_nan=True).all(), (
         "The Shannon_index values are not calculated correctly, diff is "
         + f"{(result['Shannon'] - expected_shannon).tolist()}"
@@ -88,19 +88,21 @@ def test_calculate_alpha_diversity(sample_factors):
 )
 def test_alpha_diversity_parametrized(table_name, col_to_add, sample_factors):
     """Tests the alpha_diversity_parametrized function."""
-    # data = sample_tables_dict(name)
     data_dict = sample_tables_dict(table_name, add_abundance=True)
     data_dict = {
         table_name: add_column(data_dict[table_name], col_to_add),
     }
-
+    assert (
+        data_dict[table_name].index.name == sample_factors.index.name
+    ), "The index names of the input DataFrame and metadata do not match."
+    print(sample_factors)
     result = alpha_diversity_parametrized(data_dict, table_name, sample_factors)
 
     # Check if the result is a DataFrame
     assert isinstance(result, pd.DataFrame), "The result should be a DataFrame"
 
     # Check if the result contains the expected columns
-    expected_columns = ["ref_code", "Shannon", "factor1"]
+    expected_columns = ["Shannon", "factor1"]
     assert all(
         col in result.columns for col in expected_columns
     ), f"Expected columns {expected_columns}, but got {result.columns.tolist()}"
@@ -129,14 +131,14 @@ def test_beta_diversity_parametrized():
     metric = "braycurtis"
     data = sample_data(add_abundance=True)
 
-    # Mock the diversity_input function to return the input DataFrame
-    def mock_diversity_input(df, kind, taxon):
-        return df.set_index("ref_code")
+    # # Mock the diversity_input function to return the input DataFrame
+    # def mock_diversity_input(df, kind, taxon):
+    #     return df.set_index("ref_code")
 
     # Replace the diversity_input function with the mock
     from momics.diversity import diversity_input
 
-    diversity_input = mock_diversity_input
+    # diversity_input = mock_diversity_input
     beta_input = diversity_input(data, kind="beta", taxon=taxon)
     expected_beta = beta_diversity(metric, beta_input)
 

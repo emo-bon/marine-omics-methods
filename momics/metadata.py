@@ -7,10 +7,17 @@ Hopefully, that will not be the case for ever.
 """
 
 import os
+import logging
 import pandas as pd
 from typing import Dict, List
 from datetime import datetime
 from mgo.udal import UDAL
+
+
+# logger setup
+FORMAT = "%(levelname)s | %(name)s | %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
 
 
 def get_metadata(folder):
@@ -18,10 +25,10 @@ def get_metadata(folder):
     sample_metadata = pd.read_csv(
         os.path.join(folder, "Batch1and2_combined_logsheets_2024-11-12.csv")
     )
-    assert 'source_mat_id' in sample_metadata.columns, (
-        "The sample metadata file does not contain the 'source_mat_id' column."
-    )
-    print(sample_metadata['source_mat_id'].unique())
+    assert (
+        "source_mat_id" in sample_metadata.columns
+    ), "The sample metadata file does not contain the 'source_mat_id' column."
+    print(sample_metadata["source_mat_id"].unique())
 
     observatory_metadata = pd.read_csv(
         os.path.join(folder, "Observatory_combined_logsheets_validated.csv")
@@ -57,9 +64,9 @@ def get_metadata_udal():
 
     sample_metadata = udal.execute("urn:embrc.eu:emobon:logsheets").data().reset_index()
 
-    assert 'source_mat_id' in sample_metadata.columns, (
-        "The sample metadata file does not contain the 'source_mat_id' column."
-    )
+    assert (
+        "source_mat_id" in sample_metadata.columns
+    ), "The sample metadata file does not contain the 'source_mat_id' column."
 
     observatory_metadata = (
         udal.execute("urn:embrc.eu:emobon:observatories").data().set_index("obs_id")
@@ -85,6 +92,86 @@ def get_metadata_udal():
     full_metadata = fill_na_for_object_columns(full_metadata)
 
     return full_metadata
+
+
+###########################
+## Filter metadata terms ##
+###########################
+"""
+Specific preprocessing for EMO-BON samplesheets to 
+1. Expose only the relevant variables to the user
+2. Rename the variables to be more user-friendly
+"""
+
+
+def clean_metadata(metadata: pd.DataFrame, terms: Dict[str, str]) -> pd.DataFrame:
+    """Clean the metadata DataFrame by filtering and renaming columns.
+    Args:
+        metadata (pd.DataFrame): The metadata DataFrame to clean.
+        terms (Dict[str, str]): A dictionary where keys are original column names and values are new column names.
+    Returns:
+        pd.DataFrame: The cleaned metadata DataFrame with filtered and renamed columns.
+    """
+    metadata = filter_metadata_terms(metadata, list(terms.keys()))
+    metadata = rename_metadata_terms_vre(metadata, terms)
+
+    metadata.set_index("source material ID", inplace=True)
+    metadata.drop(columns=["ref_code"], inplace=True, errors="ignore")
+    return metadata
+
+
+def filter_metadata_terms(df: pd.DataFrame, terms: list) -> pd.DataFrame:
+    """Filter the metadata terms in the DataFrame.
+    Args:
+        df (pd.DataFrame): The DataFrame containing metadata.
+        terms (list): A list of terms to keep in the DataFrame.
+    Returns:
+        pd.DataFrame: The DataFrame filtered to only include the specified terms.
+    """
+    return df[terms]
+
+
+def rename_metadata_terms_vre(df: pd.DataFrame, hash: Dict[str, str]) -> pd.DataFrame:
+    """Rename metadata terms to make names more readable to the user.
+    Args:
+        df (pd.DataFrame): The DataFrame containing metadata.
+        hash (Dict[str, str]): A dictionary where keys are original column names and values are new column names.
+    Returns:
+        pd.DataFrame: The DataFrame with renamed columns.
+    """
+    df = df.rename(columns=hash)
+    return df
+
+
+def merge_source_mat_id_to_data(
+    df_dict: Dict[str, pd.DataFrame], metadata: pd.DataFrame
+) -> Dict[str, pd.DataFrame]:
+    """
+    Merge the 'source_mat_id' from metadata to each DataFrame in df_dict based on 'ref_code'.
+    This function assumes that each DataFrame in df_dict has a 'ref_code' column that matches the 'ref_code' in metadata.
+    Args:
+        df_dict (Dict[str, pd.DataFrame]): A dictionary where keys are DataFrame names and values are DataFrames.
+        metadata (pd.DataFrame): The metadata DataFrame containing 'source_mat_id' and 'ref_code' columns.
+    Returns:
+        Dict[str, pd.DataFrame]: A dictionary where each DataFrame has been merged with 'source_mat_id' from metadata.
+    """
+    for name, df in df_dict.items():
+        if "ref_code" in df.columns:
+            df = df.merge(
+                metadata[["source_mat_id", "ref_code"]], on="ref_code", how="left"
+            )
+            df.rename(columns={"source_mat_id": "source material ID"}, inplace=True)
+            df.drop(columns=["ref_code"], inplace=True)
+            if name.lower() in ["lsu", "ssu"]:
+                df = df.set_index(["source material ID", "ncbi_tax_id"])
+            else:
+                df = df.set_index("source material ID")
+            df_dict[name] = df
+        else:
+            logger.warning(
+                f"Table {name} does not have 'ref_code' column, skipping merge."
+            )
+    return df_dict
 
 
 #####################
@@ -119,7 +206,7 @@ def filter_metadata_table(
 def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFrame:
     """
     Filter the DataFrame based on the filtered metadata.
-    This function filters the DataFrame columns based on the 'ref_code' values in the filtered metadata.
+    This function filters the DataFrame columns based on the `index` values in the filtered metadata.
 
     Args:
         df (pd.DataFrame): The DataFrame to filter.
@@ -127,17 +214,11 @@ def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFra
     Returns:
         pd.DataFrame: The filtered DataFrame.
     """
-    # filter columns names of df which are in the filtered metadata
-
-    assert "source_mat_id" in filtered_metadata.columns, (
-        "The filtered metadata does not contain the 'source_mat_id' column."
-    )
-
     cols_to_keep = list(
         [
             col
             for col in df.columns.str.strip()
-            if col in filtered_metadata["ref_code"].to_list()
+            if col in filtered_metadata.index.to_list()
         ]
     )
 
@@ -149,29 +230,34 @@ def filter_data(df: pd.DataFrame, filtered_metadata: pd.DataFrame) -> pd.DataFra
 ## Enhance metadata ##
 ######################
 def enhance_metadata(
-    metadata: pd.DataFrame, df_validation: pd.DataFrame
+    metadata: pd.DataFrame, df_validation: pd.DataFrame = None
 ) -> pd.DataFrame:
     """
     Enhance the metadata DataFrame by processing the 'collection_date' column and extracting the season.
-    This function also filters the metadata based on the 'ref_code' values in the df_validation DataFrame.
+    This function also optionally filters the metadata based on the 'ref_code' values in the df_validation DataFrame.
 
     Args:
         metadata (pd.DataFrame): The metadata DataFrame to enhance.
-        df_validation (pd.DataFrame): The DataFrame containing valid samples for filtering.
+        df_validation (pd.DataFrame, optional): The DataFrame containing valid samples for filtering.
+    
     Returns:
         pd.DataFrame: The enhanced metadata DataFrame.
     """
-    metadata = process_collection_date(metadata)
-    metadata = extract_season(metadata)
+    new_columns = []
+    metadata, cols = process_collection_date(metadata)
+    new_columns.extend(cols)
+    metadata, cols = extract_season(metadata)
+    new_columns.extend(cols)
 
-    # Filter the metadata on the 'ref_code' only for entries that are in df_valid
-    metadata = metadata[metadata["ref_code"].isin(df_validation["ref_code"])]
+    if df_validation is not None:
+        # Filter the metadata on the 'ref_code' only for entries that are in df_valid
+        metadata = metadata[metadata["ref_code"].isin(df_validation["ref_code"])]
 
-    missing = df_validation[~df_validation["ref_code"].isin(metadata["ref_code"])]
-    assert len(missing) == 0, "Missing samples in the metadata"
-    assert len(metadata) == len(
-        df_validation
-    ), "Filtered metadata does not match the valid samples"
+        missing = df_validation[~df_validation["ref_code"].isin(metadata["ref_code"])]
+        assert len(missing) == 0, "Missing samples in the metadata"
+        assert len(metadata) == len(
+            df_validation
+        ), "Filtered metadata does not match the valid samples"
 
     # add column to identify properly the replicates
     metadata["replicate_info"] = (
@@ -183,8 +269,8 @@ def enhance_metadata(
         + "_"
         + metadata["size_frac"].astype(str)
     )
-
-    return metadata
+    new_columns.append("replicate_info")
+    return metadata, new_columns
 
 
 def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
@@ -200,6 +286,7 @@ def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The updated metadata DataFrame with new columns for year, month, and day.
     """
+    new_columns = []
     # Convert the 'collection_date' column to datetime
     metadata["collection_date"] = metadata["collection_date"].apply(
         lambda x: datetime.strptime(x, "%Y-%m-%d") if x is not None else None
@@ -208,10 +295,13 @@ def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
     metadata["year"] = metadata["collection_date"].apply(
         lambda x: x.year if x is not None else None
     )
+    new_columns.append("year")
     # Extract the month from the 'collection_date' column
     metadata["month"] = metadata["collection_date"].apply(
         lambda x: x.month if x is not None else None
     )
+    new_columns.append("month")
+
     # Convert month to month name
     metadata["month_name"] = metadata["month"].apply(
         lambda x: (
@@ -220,11 +310,13 @@ def process_collection_date(metadata: pd.DataFrame) -> pd.DataFrame:
             else None
         )
     )
+    new_columns.append("month_name")
     # Extract the day from the 'collection_date' column
     metadata["day"] = metadata["collection_date"].apply(
         lambda x: x.day if x is not None else None
     )
-    return metadata
+    new_columns.append("day")
+    return metadata, new_columns
 
 
 def extract_season(metadata: pd.DataFrame) -> pd.DataFrame:
@@ -241,7 +333,7 @@ def extract_season(metadata: pd.DataFrame) -> pd.DataFrame:
     """
     # Extract the season based on the month and day
     metadata["season"] = metadata.apply(extract_season_single, axis=1)
-    return metadata
+    return metadata, ["season"]
 
 
 def extract_season_single(row):
