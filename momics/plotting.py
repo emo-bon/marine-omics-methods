@@ -38,6 +38,7 @@ import plotly.graph_objects as go
 import holoviews as hv
 import hvplot.pandas  # noqa
 
+from skbio.diversity import beta_diversity
 from bokeh.models import CategoricalColorMapper, ContinuousColorMapper
 from bokeh.palettes import Category20, viridis
 
@@ -752,11 +753,8 @@ def beta_plot_pc_granular(
     Returns:
         Tuple[plt.figure, float]: A tuple containing the beta diversity PCoA plot and the explained variance.
     """
-    from skbio.diversity import beta_diversity
-
     # beta = beta_diversity("braycurtis", filtered_data.iloc[:, 1:].T)
     beta = beta_diversity("braycurtis", filtered_data.T)
-    logger.info(f"Beta diversity shape: {beta}")
     pcoa_result = pcoa(beta, method="eigh")  # , number_of_dimensions=3)
     explained_variance = (
         pcoa_result.proportion_explained[0],

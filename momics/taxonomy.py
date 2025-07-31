@@ -440,6 +440,7 @@ def prevalence_cutoff_taxonomy(df: pd.DataFrame, percent: float = 10) -> pd.Data
     if isinstance(df1.index, pd.MultiIndex):
         names = df1.index.names
         df1 = df1.reset_index(level=1)
+
     for index_val in df1.index.unique():
         abundance_sum = df1.loc[
             index_val, "abundance"
@@ -473,7 +474,7 @@ def rarefy_table(df: pd.DataFrame, depth: int = None, axis: int = 1) -> pd.DataF
         axis: int, 1 for samples in columns, 0 for samples in rows.
 
     Returns:
-        pd.DataFrame: A rarefied DataFrame.
+        pd.DataFrame: A rarefied DataFrame. Samples are ALWAYS in columns.
     """
     if axis == 1:
         sample_sums = df.sum(axis=0)
@@ -486,15 +487,15 @@ def rarefy_table(df: pd.DataFrame, depth: int = None, axis: int = 1) -> pd.DataF
     for sample in df.columns if axis == 1 else df.index:
         counts = df[sample].values if axis == 1 else df.loc[sample].values
         if sample_sums[sample] < depth:
-            # Not enough counts, fill with NaN or zeros
-            rarefied[sample] = np.full_like(counts, np.nan)
+            # Not enough counts, fill with NaN
+            rarefied[sample] = np.full(counts.shape, np.nan, dtype=np.float64)
         else:
             rarefied_counts = subsample_counts(counts.astype(int), int(depth))
             rarefied[sample] = rarefied_counts
     if axis == 1:
         return pd.DataFrame(rarefied, index=df.index)
     else:
-        return pd.DataFrame(rarefied, columns=df.columns)
+        return pd.DataFrame(rarefied, index=df.columns)
 
 
 def fill_taxonomy_placeholders(df: pd.DataFrame, taxonomy_ranks: list) -> pd.DataFrame:
@@ -583,7 +584,7 @@ def split_taxonomic_data(
     grouped_data = {}
     for value, ref_codes in groups.items():
         # filter the dataframe
-        filtered_df = taxonomy[taxonomy.index.to_list().isin(ref_codes)]
+        filtered_df = taxonomy[taxonomy.index.isin(ref_codes)]
         # add to the dictionary
         grouped_data[value] = filtered_df
 

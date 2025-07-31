@@ -2,9 +2,30 @@ import os
 import sys
 import psutil
 import logging
+import pandas as pd
+from typing import Tuple
 from IPython import get_ipython
 
 import pandas as pd
+from momics.taxonomy import (
+    prevalence_cutoff,
+    remove_high_taxa,
+    prevalence_cutoff_taxonomy,
+    fill_taxonomy_placeholders,
+    pivot_taxonomic_data,
+)
+from momics.loader import load_parquets_udal
+from momics.metadata import (
+    get_metadata_udal, enhance_metadata,
+    clean_metadata,
+    merge_source_mat_id_to_data,
+)
+from momics.constants import COL_NAMES_HASH_EMO_BON_VRE as COL_NAMES_HASH
+
+# logger setup
+FORMAT = "%(levelname)s | %(name)s | %(message)s"
+logging.basicConfig(level=logging.INFO, format=FORMAT)
+logger = logging.getLogger(__name__)
 
 
 #####################
@@ -163,3 +184,50 @@ def memory_usage():
     )
 
     return mem_list
+
+########################
+# High-level functions #
+########################
+
+def load_and_clean(valid_samples: pd.DataFrame=None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    # Load metadata
+    full_metadata = get_metadata_udal()
+
+    # filter the metadata only for valid 181 samples
+    full_metadata, added_columns = enhance_metadata(full_metadata, valid_samples)
+
+    # LOADing data
+    mgf_parquet_dfs = load_parquets_udal()
+    mgf_parquet_dfs = merge_source_mat_id_to_data(mgf_parquet_dfs, full_metadata)
+
+    # convert added_columns to a dictionary
+    added_columns = {col: col.replace("_", " ") for col in added_columns}
+
+    # extend COL_NAMES_HASH with added columns
+    COL_NAMES_HASH.update(added_columns)
+
+    # clean the metadata, rename and remove certain columns for the VRE purposes
+    full_metadata = clean_metadata(full_metadata, COL_NAMES_HASH)
+
+    return full_metadata, mgf_parquet_dfs
+
+
+def taxonomy_common_preprocess01(df, high_taxon, mapping, prevalence_cutoff_value, taxonomy_ranks, pivot=False):
+    df1 = fill_taxonomy_placeholders(df, taxonomy_ranks)
+
+    logger.info("Preprocessing taxonomy...")
+    if high_taxon != 'None':
+        bef = df1.shape[0]
+        df1 = remove_high_taxa(df1, taxonomy_ranks, tax_level=high_taxon, strict=mapping)
+        aft = df1.shape[0]
+        logger.info(f"Removed {bef - aft} high taxa at level: {high_taxon}")
+
+    # low prevalence cutoff
+    if pivot:
+        df1 = pivot_taxonomic_data(df1)
+
+        # low prevalence cutoff
+        df1 = prevalence_cutoff(df1, percent=prevalence_cutoff_value, skip_columns=0)
+        return df1
+    else:
+        return prevalence_cutoff_taxonomy(df1, percent=prevalence_cutoff_value)
