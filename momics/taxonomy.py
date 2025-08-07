@@ -634,7 +634,7 @@ def split_taxonomic_data_pivoted(
 
 
 def compute_bray_curtis(
-    df: pd.DataFrame, skip_cols: int = 2, direction: str = "samples"
+    df: pd.DataFrame, skip_cols: int = 0, direction: str = "samples"
 ) -> pd.DataFrame:
     """
     Compute Bray-Curtis dissimilarity and return as a pandas DataFrame.
@@ -658,7 +658,7 @@ def compute_bray_curtis(
             metric="braycurtis", counts=df.iloc[:, skip_cols:].T, ids=ids
         )
     elif direction == "taxa":
-        ids = df["ncbi_tax_id"].astype(str).tolist()
+        ids = df.index.get_level_values("ncbi_tax_id")
         result = beta_diversity(
             metric="braycurtis", counts=df.iloc[:, skip_cols:], ids=ids
         )

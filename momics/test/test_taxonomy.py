@@ -777,12 +777,14 @@ def test_compute_bray_curtis_taxa():
         "sample3": [7, 8, 9],
     }
     df = pd.DataFrame(data)
+    df.set_index(["ncbi_tax_id", "taxon"], inplace=True)
+    print(df)
     # Bray-Curtis for taxa (skip first 2 columns)
     result = compute_bray_curtis(df, skip_cols=2, direction="taxa")
     # Should be a square DataFrame with ncbi_tax_id as index/columns
     assert isinstance(result, pd.DataFrame)
-    assert set(result.index) == {"111", "222", "333"}
-    assert set(result.columns) == {"111", "222", "333"}
+    assert set(result.index) == {111, 222, 333}
+    assert set(result.columns) == {111, 222, 333}
     # Diagonal should be zero
     assert np.allclose(np.diag(result), 0)
 
