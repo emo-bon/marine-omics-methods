@@ -16,7 +16,8 @@ from momics.taxonomy import (
 )
 from momics.loader import load_parquets_udal
 from momics.metadata import (
-    get_metadata_udal, enhance_metadata,
+    get_metadata_udal,
+    enhance_metadata,
     clean_metadata,
     merge_source_mat_id_to_data,
 )
@@ -185,11 +186,15 @@ def memory_usage():
 
     return mem_list
 
+
 ########################
 # High-level functions #
 ########################
 
-def load_and_clean(valid_samples: pd.DataFrame=None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+def load_and_clean(
+    valid_samples: pd.DataFrame = None,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     # Load metadata
     full_metadata = get_metadata_udal()
 
@@ -212,13 +217,17 @@ def load_and_clean(valid_samples: pd.DataFrame=None) -> Tuple[pd.DataFrame, pd.D
     return full_metadata, mgf_parquet_dfs
 
 
-def taxonomy_common_preprocess01(df, high_taxon, mapping, prevalence_cutoff_value, taxonomy_ranks, pivot=False):
+def taxonomy_common_preprocess01(
+    df, high_taxon, mapping, prevalence_cutoff_value, taxonomy_ranks, pivot=False
+):
     df1 = fill_taxonomy_placeholders(df, taxonomy_ranks)
 
     logger.info("Preprocessing taxonomy...")
-    if high_taxon != 'None':
+    if high_taxon != "None":
         bef = df1.shape[0]
-        df1 = remove_high_taxa(df1, taxonomy_ranks, tax_level=high_taxon, strict=mapping)
+        df1 = remove_high_taxa(
+            df1, taxonomy_ranks, tax_level=high_taxon, strict=mapping
+        )
         aft = df1.shape[0]
         logger.info(f"Removed {bef - aft} high taxa at level: {high_taxon}")
 

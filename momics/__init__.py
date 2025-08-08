@@ -11,7 +11,8 @@ submoduless = [
     "galaxy",
     "loader",
     "metadata",
-    "plotting",
-    "taxonomy",
     "networks",
+    "plotting",
+    "stats",
+    "taxonomy",
 ]

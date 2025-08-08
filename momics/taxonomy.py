@@ -301,7 +301,7 @@ def remove_high_taxa(
         logger.info(f"Number of bad taxa at {tax_level}: {bad_count}")
         logger.info(f"Unmapped taxa at {tax_level}: {unmapped_taxa}")
         return df1[df1[tax_level].notna()]
-    logger.info(f'RETURN: {df[df[tax_level].notna()].head()}')
+    logger.info(f"RETURN: {df[df[tax_level].notna()].head()}")
     return df[df[tax_level].notna()].copy()
 
 
@@ -442,9 +442,7 @@ def prevalence_cutoff_taxonomy(df: pd.DataFrame, percent: float = 10) -> pd.Data
         df1 = df1.reset_index(level=1)
 
     for index_val in df1.index.unique():
-        abundance_sum = df1.loc[
-            index_val, "abundance"
-        ].sum()
+        abundance_sum = df1.loc[index_val, "abundance"].sum()
         threshold = abundance_sum * (percent / 100)
 
         # new filtered DataFrame
@@ -681,7 +679,9 @@ def fdr_pvals(p_spearman_df: pd.DataFrame, pval_cutoff: float) -> pd.DataFrame:
     """
     # Extract upper triangle p-values
     # Handle MultiIndex for rows/columns if present
-    if isinstance(p_spearman_df.index, pd.MultiIndex) or isinstance(p_spearman_df.columns, pd.MultiIndex):
+    if isinstance(p_spearman_df.index, pd.MultiIndex) or isinstance(
+        p_spearman_df.columns, pd.MultiIndex
+    ):
         # Use get_level_values(0) to ensure correct shape for np.triu_indices_from
         mask = np.triu(np.ones(p_spearman_df.shape), k=1).astype(bool)
         pval_array = p_spearman_df.values[mask]

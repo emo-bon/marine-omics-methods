@@ -239,7 +239,7 @@ def enhance_metadata(
     Args:
         metadata (pd.DataFrame): The metadata DataFrame to enhance.
         df_validation (pd.DataFrame, optional): The DataFrame containing valid samples for filtering.
-    
+
     Returns:
         pd.DataFrame: The enhanced metadata DataFrame.
     """

@@ -31,6 +31,7 @@ from textwrap import fill
 import numpy as np
 import panel as pn
 import pandas as pd
+import networkx as nx
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -968,3 +969,23 @@ def get_sankey(df, cat_cols=[], value_cols="", title="Sankey Diagram"):
     fig.update_layout(title_text=title, font_size=10)
 
     return fig
+
+
+def plot_network(network_results, association_data, alpha=0.5):
+    _, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+    for ax, factor in zip(axes, list(association_data.keys())):
+        G = network_results[factor]["graph"]
+        colors = nx.get_edge_attributes(G, "color")
+        pos = nx.spring_layout(G, k=0.2, iterations=50, seed=42)
+        nx.draw_networkx_nodes(
+            G, pos, ax=ax, alpha=alpha, node_color="grey", node_size=17
+        )
+        nx.draw_networkx_edges(
+            G, pos, ax=ax, alpha=alpha - 0.3, edge_color=list(colors.values())
+        )
+        ax.set_title(factor)
+        ax.axis("off")
+
+    plt.tight_layout()
+    plt.show()

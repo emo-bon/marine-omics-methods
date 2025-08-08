@@ -1,10 +1,12 @@
 import itertools
 import pandas as pd
+import networkx as nx
+from typing import Dict, List, Tuple
 
 
 def interaction_to_graph(
     df: pd.DataFrame, pos_cutoff: float = 0.8, neg_cutoff: float = -0.6
-) -> tuple:
+) -> Tuple[List[str], List[Tuple[str, str]], List[Tuple[str, str]]]:
     """
     Create a network from the correlation matrix.
     Args:
@@ -109,3 +111,64 @@ def pairwise_jaccard_lower_triangle(
         pivoted.loc[g2, g1] = jaccard
 
     return pivoted
+
+
+def build_interaction_graphs(
+    correlation_data: dict,
+    pos_cutoff: float = 0.5,
+    neg_cutoff: float = -0.5,
+    p_val_cutoff: float = 0.05,
+) -> Dict:
+    """
+    Build interaction graphs from correlation data.
+
+    Args:
+        correlation_data (dict): A dictionary containing correlation data for different factors.
+        pos_cutoff (float): The positive correlation cutoff.
+        neg_cutoff (float): The negative correlation cutoff.
+        p_val_cutoff (float): The p-value cutoff.
+
+    Returns:
+        Dict: A dictionary containing network results for each factor.
+    """
+    network_results = {}
+    for factor, dict_df in correlation_data.items():
+        print(f"Factor: {factor}")
+        nodes, edges_pos, edges_neg = interaction_to_graph_with_pvals(
+            dict_df["correlation"],
+            dict_df["p_vals_fdr"],
+            pos_cutoff=pos_cutoff,
+            neg_cutoff=neg_cutoff,
+            p_val_cutoff=p_val_cutoff,
+        )
+        G = nx.Graph(mode=factor)
+
+        G.add_nodes_from(nodes)
+        G.add_edges_from(edges_pos, color="green")
+        G.add_edges_from(edges_neg, color="red")
+
+        network_results[factor] = {
+            "graph": G,
+            "nodes": nodes,
+            "edges_pos": edges_pos,
+            "edges_neg": edges_neg,
+        }
+
+        degree_centrality = nx.degree_centrality(G)
+
+        network_results[factor]["degree_centrality"] = sorted(
+            degree_centrality.items(), key=lambda x: x[1], reverse=True
+        )[:10]
+
+        betweenness = nx.betweenness_centrality(G)
+
+        network_results[factor]["top_betweenness"] = sorted(
+            betweenness.items(), key=lambda x: x[1], reverse=True
+        )[:10]
+        network_results[factor]["bottom_betweenness"] = sorted(
+            betweenness.items(), key=lambda x: x[1]
+        )[:10]
+        network_results[factor]["total_nodes"] = G.number_of_nodes()
+        network_results[factor]["total_edges"] = G.number_of_edges()
+
+    return network_results

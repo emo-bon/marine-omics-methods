@@ -1,6 +1,6 @@
 [project]
 name = "marine-omics"
-version = "0.1.13"
+version = "0.1.14"
 license = { file = "LICENSE.txt" }
 description = "Utilities for metagoflow and marine omics demos"
 readme = "README.md"
@@ -42,6 +42,7 @@ dependencies = [
     "requests>=2.26.0",
     "scikit-bio>=0.6.3",
     "scikit-learn>=1.6.0",
+    "scipy>=1.12.0",
     "seaborn>=0.11.2",
     "tqdm>=4.67.1",
 ]

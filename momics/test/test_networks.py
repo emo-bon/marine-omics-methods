@@ -26,7 +26,7 @@ def test_interaction_to_graph():
             [-0.7, 0.2, 1.0],
         ],
         columns=["A", "B", "C"],
-        index=["A", "B", "C"]
+        index=["A", "B", "C"],
     )
 
     nodes, edges_pos, edges_neg = interaction_to_graph(
@@ -57,7 +57,7 @@ def test_interaction_to_graph_with_pvals():
             [-0.7, 0.2, 1.0],
         ],
         columns=["A", "B", "C"],
-        index=["A", "B", "C"]
+        index=["A", "B", "C"],
     )
     pvals = pd.DataFrame(
         [
@@ -66,7 +66,7 @@ def test_interaction_to_graph_with_pvals():
             [0.01, 0.01, 0.01],
         ],
         columns=["A", "B", "C"],
-        index=["A", "B", "C"]
+        index=["A", "B", "C"],
     )
 
     nodes, edges_pos, edges_neg = interaction_to_graph_with_pvals(
@@ -112,7 +112,7 @@ def test_pairwise_jaccard_lower_triangle():
     assert set(df.columns) == {"group1", "group2", "group3"}
 
     # Jaccard between group1 and group2: 1 shared edge, 3 total edges
-    assert df.loc["group2", "group1"] == pytest.approx(1/3)
+    assert df.loc["group2", "group1"] == pytest.approx(1 / 3)
     # Jaccard between group1 and group3: 0 shared, 3 total
     assert df.loc["group3", "group1"] == 0.0
     # Jaccard between group2 and group3: 0 shared, 3 total

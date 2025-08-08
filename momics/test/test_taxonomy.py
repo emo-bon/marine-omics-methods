@@ -71,13 +71,9 @@ def test_pivot_taxonomic_data():
 def valid_df():
     idx = pd.MultiIndex.from_tuples(
         [("Bacteria;Firmicutes", 123), ("Bacteria;Proteobacteria", 456)],
-        names=["taxonomic_concat", "ncbi_tax_id"]
+        names=["taxonomic_concat", "ncbi_tax_id"],
     )
-    data = pd.DataFrame(
-        [[10, 20], [30, 40]],
-        index=idx,
-        columns=["sample1", "sample2"]
-    )
+    data = pd.DataFrame([[10, 20], [30, 40]], index=idx, columns=["sample1", "sample2"])
     return data
 
 
@@ -89,12 +85,14 @@ def test_tss_sqrt_normalization(valid_df):
 
 def test_rarefy_method_calls_rarefy_table(monkeypatch, valid_df):
     called = {}
+
     def fake_rarefy_table(df, depth=None):
-        called['called'] = True
+        called["called"] = True
         return df
+
     monkeypatch.setattr("momics.taxonomy.rarefy_table", fake_rarefy_table)
     result = normalize_abundance(valid_df, method="rarefy", rarefy_depth=5)
-    assert called['called']
+    assert called["called"]
     pd.testing.assert_frame_equal(result, valid_df)
 
 
@@ -323,8 +321,18 @@ def test_aggregate_by_taxonomic_level_basic():
     data = {
         "phylum": ["Firmicutes", "Firmicutes", "Proteobacteria", "Proteobacteria"],
         "class": ["Bacilli", "Bacilli", "Gammaproteobacteria", "Gammaproteobacteria"],
-        "order": ["Lactobacillales", "Lactobacillales", "Enterobacterales", "Enterobacterales"],
-        "family": ["Lactobacillaceae", "Lactobacillaceae", "Enterobacteriaceae", "Enterobacteriaceae"],
+        "order": [
+            "Lactobacillales",
+            "Lactobacillales",
+            "Enterobacterales",
+            "Enterobacterales",
+        ],
+        "family": [
+            "Lactobacillaceae",
+            "Lactobacillaceae",
+            "Enterobacteriaceae",
+            "Enterobacteriaceae",
+        ],
         "genus": ["Lactobacillus", "Lactobacillus", "Escherichia", "Escherichia"],
         "species": ["L. acidophilus", "L. casei", "E. coli", "E. fergusonii"],
         "sample1": [10, 20, 30, 40],
@@ -343,6 +351,7 @@ def test_aggregate_by_taxonomic_level_basic():
     assert set(result_genus.index) == {"Lactobacillus", "Escherichia"}
     assert result_genus.loc["Lactobacillus", "sample1"] == 30
     assert result_genus.loc["Escherichia", "sample2"] == 35
+
 
 def test_aggregate_by_taxonomic_level_missing_level():
     # DataFrame with some missing genus values
@@ -371,8 +380,18 @@ def test_remove_high_taxa_basic():
     data = {
         "phylum": ["Firmicutes", "Firmicutes", None, "Proteobacteria"],
         "class": ["Bacilli", "Bacilli", "Gammaproteobacteria", "Gammaproteobacteria"],
-        "order": ["Lactobacillales", "Lactobacillales", "Enterobacterales", "Enterobacterales"],
-        "family": ["Lactobacillaceae", "Lactobacillaceae", "Enterobacteriaceae", "Enterobacteriaceae"],
+        "order": [
+            "Lactobacillales",
+            "Lactobacillales",
+            "Enterobacterales",
+            "Enterobacterales",
+        ],
+        "family": [
+            "Lactobacillaceae",
+            "Lactobacillaceae",
+            "Enterobacteriaceae",
+            "Enterobacteriaceae",
+        ],
         "genus": ["Lactobacillus", "Lactobacillus", "Escherichia", None],
         "species": ["L. acidophilus", "L. casei", "E. coli", "E. fergusonii"],
         "abundance": [10, 20, 30, 40],
@@ -385,7 +404,8 @@ def test_remove_high_taxa_basic():
     assert result["phylum"].isna().sum() == 0
     assert set(result["phylum"]) == {"Firmicutes", "Proteobacteria"}
 
-#TODO: this works only if index_col is [0, 1], adapt function to try to add ncbi_tax_id if not present
+
+# TODO: this works only if index_col is [0, 1], adapt function to try to add ncbi_tax_id if not present
 # and only if not there throw an error.
 def test_remove_high_taxa_strict():
     test_dir = os.path.dirname(__file__)
@@ -397,8 +417,11 @@ def test_remove_high_taxa_strict():
     # Should not raise and should keep only rows with non-null phylum
     result = remove_high_taxa(ssu, TAXONOMY_RANKS, tax_level="phylum", strict=True)
     assert result["phylum"].isna().sum() == 0
-    assert "unclassified" in result["phylum"].values or "unclassified" not in result["phylum"].values  # Accept both, as strict skips mapping for "unclassified"
-    
+    assert (
+        "unclassified" in result["phylum"].values
+        or "unclassified" not in result["phylum"].values
+    )  # Accept both, as strict skips mapping for "unclassified"
+
     # All rows should have a phylum value
     assert all(pd.notna(result["phylum"]))
 
@@ -502,11 +525,9 @@ def test_prevalence_cutoff_taxonomy_basic():
     # DataFrame with MultiIndex (taxon, sample), abundance column
     index = pd.MultiIndex.from_tuples(
         [("A", "s1"), ("A", "s2"), ("B", "s1"), ("B", "s2"), ("C", "s1"), ("C", "s2")],
-        names=["taxon", "sample"]
+        names=["taxon", "sample"],
     )
-    data = {
-        "abundance": [10, 0, 0, 0, 5, 6]
-    }
+    data = {"abundance": [10, 0, 0, 0, 5, 6]}
     df = pd.DataFrame(data, index=index)
 
     # With percent=50, for each taxon, only keep rows with abundance > 50% of total for that taxon
@@ -529,12 +550,11 @@ def test_prevalence_cutoff_taxonomy_no_multiindex():
         index_col=[0, 1],
     )
     filtered = prevalence_cutoff_taxonomy(ssu, percent=10)
-    assert (filtered.loc[filtered.index == ('EMOBON00084', 338190), "abundance"] == 129).any()
+    assert (
+        filtered.loc[filtered.index == ("EMOBON00084", 338190), "abundance"] == 129
+    ).any()
 
-    data = {
-        "taxon": ["A", "B", "C", "D", "E", "F"],
-        "abundance": [10, 0, 0, 0, 5, 6]
-    }
+    data = {"taxon": ["A", "B", "C", "D", "E", "F"], "abundance": [10, 0, 0, 0, 5, 6]}
     df = pd.DataFrame(data)
     df.set_index("taxon", inplace=True)
     filtered = prevalence_cutoff(df, percent=50, skip_columns=0)
@@ -547,10 +567,13 @@ def test_prevalence_cutoff_taxonomy_no_multiindex():
 
 def test_rarefy_table_axis1():
     # Simple abundance table: rows=features, columns=samples
-    df = pd.DataFrame({
-        "sample1": [10, 20, 30],
-        "sample2": [5, 15, 10],
-    }, index=["taxonA", "taxonB", "taxonC"])
+    df = pd.DataFrame(
+        {
+            "sample1": [10, 20, 30],
+            "sample2": [5, 15, 10],
+        },
+        index=["taxonA", "taxonB", "taxonC"],
+    )
     # Minimum sample sum is 30 (sample2)
     result = rarefy_table(df, axis=1)
     assert result.shape == df.shape
@@ -560,24 +583,30 @@ def test_rarefy_table_axis1():
 
 def test_rarefy_table_axis0():
     # Features in columns, samples in rows
-    df = pd.DataFrame({
-        "taxonA": [10, 5],
-        "taxonB": [20, 15],
-        "taxonC": [30, 10],
-    }, index=["sample1", "sample2"])
+    df = pd.DataFrame(
+        {
+            "taxonA": [10, 5],
+            "taxonB": [20, 15],
+            "taxonC": [30, 10],
+        },
+        index=["sample1", "sample2"],
+    )
     # Minimum sample sum is 30 (sample2)
     result = rarefy_table(df, axis=0)
     # print(result)
     assert result.shape == df.T.shape
     assert np.all(result.sum(axis=0).dropna() <= 30.1)
-    assert (result['sample2'] == [5, 15, 10]).all()
+    assert (result["sample2"] == [5, 15, 10]).all()
 
 
 def test_rarefy_table_with_depth():
-    df = pd.DataFrame({
-        "sample1": [10, 20, 30],
-        "sample2": [5, 15, 10],
-    }, index=["taxonA", "taxonB", "taxonC"])
+    df = pd.DataFrame(
+        {
+            "sample1": [10, 20, 30],
+            "sample2": [5, 15, 10],
+        },
+        index=["taxonA", "taxonB", "taxonC"],
+    )
     # Set depth to 10, so all columns should sum to 10
     result = rarefy_table(df, depth=10, axis=1)
     assert np.allclose(result.sum(axis=0).dropna(), 10)
@@ -585,10 +614,13 @@ def test_rarefy_table_with_depth():
 
 def test_rarefy_table_not_enough_counts():
     # One sample has less than the rarefaction depth
-    df = pd.DataFrame({
-        "sample1": [1, 1, 1],
-        "sample2": [10, 10, 10],
-    }, index=["taxonA", "taxonB", "taxonC"])
+    df = pd.DataFrame(
+        {
+            "sample1": [1, 1, 1],
+            "sample2": [10, 10, 10],
+        },
+        index=["taxonA", "taxonB", "taxonC"],
+    )
     result = rarefy_table(df, depth=10, axis=1)
     print(result)
     # sample1 should be all NaN
@@ -647,9 +679,18 @@ def test_split_metadata():
     assert isinstance(metadata, pd.DataFrame), "The result should be a DataFrame"
 
     metadata, added_columns = enhance_metadata(metadata)
-    assert isinstance(metadata, pd.DataFrame), "The enhanced metadata should be a DataFrame"
-    assert added_columns == ['year', 'month', 'month_name', 'day', 'season', 'replicate_info'], "Unexpected added columns"
-    
+    assert isinstance(
+        metadata, pd.DataFrame
+    ), "The enhanced metadata should be a DataFrame"
+    assert added_columns == [
+        "year",
+        "month",
+        "month_name",
+        "day",
+        "season",
+        "replicate_info",
+    ], "Unexpected added columns"
+
     # convert added_columns to a dictionary
     added_columns = {col: col.replace("_", " ") for col in added_columns}
     # extend COL_NAMES_HASH with added columns
@@ -657,33 +698,38 @@ def test_split_metadata():
     metadata = clean_metadata(metadata, COL_NAMES_HASH)
 
     # Identify object columns
-    object_cols = metadata.select_dtypes(include='object').columns
+    object_cols = metadata.select_dtypes(include="object").columns
 
     # Convert them all at once to category
-    metadata = metadata.astype({col: 'category' for col in object_cols})
+    metadata = metadata.astype({col: "category" for col in object_cols})
 
-    filtered_metadata = metadata.drop_duplicates(subset='replicate info', keep='first')
-    
+    filtered_metadata = metadata.drop_duplicates(subset="replicate info", keep="first")
+
     groups = split_metadata(
         filtered_metadata,
-        'season',
+        "season",
     )
 
     assert isinstance(groups, dict), "The result should be a dictionary"
     assert len(groups) == 4, "There should be 4 groups for each season"
-    assert set(groups.keys()) == {'Spring', 'Summer', 'Autumn', 'Winter'}, "The groups should be the seasons"
-    assert len(groups['Spring']) == 3, "There should be 3 samples in Spring group"
-    assert len(groups['Summer']) == 39, "There should be 39 samples in Summer group"
-    assert len(groups['Autumn']) == 49, "There should be 49 samples in Autumn group"
-    assert len(groups['Winter']) == 9, "There should be 9 samples in Winter group"
+    assert set(groups.keys()) == {
+        "Spring",
+        "Summer",
+        "Autumn",
+        "Winter",
+    }, "The groups should be the seasons"
+    assert len(groups["Spring"]) == 3, "There should be 3 samples in Spring group"
+    assert len(groups["Summer"]) == 39, "There should be 39 samples in Summer group"
+    assert len(groups["Autumn"]) == 49, "There should be 49 samples in Autumn group"
+    assert len(groups["Winter"]) == 9, "There should be 9 samples in Winter group"
 
 
 def test_split_taxonomic_data_basic():
     # DataFrame with index as ref_code
-    df = pd.DataFrame({
-        "abundance": [10, 20, 30, 40],
-        "taxon": ["A", "B", "A", "C"]
-    }, index=["ref1", "ref2", "ref3", "ref4"])
+    df = pd.DataFrame(
+        {"abundance": [10, 20, 30, 40], "taxon": ["A", "B", "A", "C"]},
+        index=["ref1", "ref2", "ref3", "ref4"],
+    )
     groups = {
         "group1": ["ref1", "ref3"],
         "group2": ["ref2"],
@@ -699,13 +745,13 @@ def test_split_taxonomic_data_basic():
 
 
 def test_split_taxonomic_data_empty_group():
-    df = pd.DataFrame({
-        "abundance": [10, 20],
-    }, index=["ref1", "ref2"])
-    groups = {
-        "empty": ["refX"],
-        "all": ["ref1", "ref2"]
-    }
+    df = pd.DataFrame(
+        {
+            "abundance": [10, 20],
+        },
+        index=["ref1", "ref2"],
+    )
+    groups = {"empty": ["refX"], "all": ["ref1", "ref2"]}
     result = split_taxonomic_data(df, groups)
     assert result["empty"].empty
     assert set(result["all"].index) == {"ref1", "ref2"}
@@ -715,15 +761,21 @@ def test_split_taxonomic_data_pivoted():
     import numpy as np
 
     # Create a DataFrame with two "sample" columns and a multiindex
-    taxonomy = pd.DataFrame({
-        "A": [1, 0, 0],
-        "B": [0, 2, 0],
-        "C": [0, 0, 0],
-    }, index=pd.MultiIndex.from_tuples([
-        (1, "tax1"),
-        (2, "tax2"),
-        (3, "tax3"),
-    ], names=["ncbi_tax_id", "taxonomic_concat"]))
+    taxonomy = pd.DataFrame(
+        {
+            "A": [1, 0, 0],
+            "B": [0, 2, 0],
+            "C": [0, 0, 0],
+        },
+        index=pd.MultiIndex.from_tuples(
+            [
+                (1, "tax1"),
+                (2, "tax2"),
+                (3, "tax3"),
+            ],
+            names=["ncbi_tax_id", "taxonomic_concat"],
+        ),
+    )
 
     groups = {
         "group1": ["A", "B"],
@@ -746,7 +798,7 @@ def test_split_taxonomic_data_pivoted():
     with pytest.raises(ValueError):
         split_taxonomic_data_pivoted(taxonomy, "not_a_dict")
 
-    
+
 def test_compute_bray_curtis_samples():
     # DataFrame with 2 metadata columns and 3 sample columns
     data = {
@@ -797,7 +849,7 @@ def test_fdr_pvals_basic():
         [0.04, 0.03, 0.0],
     ]
     df = pd.DataFrame(data, columns=["A", "B", "C"], index=["A", "B", "C"])
-    
+
     # Use a high cutoff to ensure all are "significant"
     result = fdr_pvals(df, pval_cutoff=0.1)
     trili = np.tril_indices_from(result, k=0)
