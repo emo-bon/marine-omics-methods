@@ -52,7 +52,6 @@ testing = [
     "pytest",
     "pytest-cov",
     "pytest-timeout",
-    "tox",
 ]
 docs = [
     "sphinx>=5.0.0,<9.0.0",
