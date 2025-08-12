@@ -95,7 +95,7 @@ def normalize_abundance(
     Normalize the abundance DataFrame using specified method.
     Args:
         df (pd.DataFrame): The input DataFrame containing taxonomic information.
-        method (str): Normalization method. Options: 'tss_sqrt', 'rarefy'.
+        method (str): Normalization method. Options: 'tss', 'tss_sqrt', 'rarefy'.
             Defaults to 'tss_sqrt'.
         rarefy_depth (int, optional): Depth for rarefaction. If None, uses min sample sum.
             Defaults to None.
@@ -115,7 +115,10 @@ def normalize_abundance(
     if not np.issubdtype(df.dtypes[0], np.number):
         raise TypeError("DataFrame must contain numeric values for normalization.")
 
-    if method == "tss_sqrt":
+    if method == 'tss':
+        # Total Sum Scaling
+        out = df.div(df.sum(axis=1), axis=0)
+    elif method == "tss_sqrt":
         # Total Sum Scaling and Square Root Transformation
         out = df.div(df.sum(axis=1), axis=0)
         out = out.apply(np.sqrt)
