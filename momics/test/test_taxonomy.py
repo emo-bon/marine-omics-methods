@@ -47,7 +47,7 @@ def test_pivot_taxonomic_data():
     ), "The pivoted DataFrame should have one row for the test data"
 
     # assert one specific row
-    tax = "338190;sk_Archaea;k_;p_Thaumarchaeota;c_;o_Nitrosopumilales;f_Nitrosopumilaceae;g_;s_"
+    tax = "338190;sk__Archaea;k__;p__Thaumarchaeota;c__;o__Nitrosopumilales;f__Nitrosopumilaceae;g__;s__"
     index_vals = pivot.index.get_level_values("taxonomic_concat")
 
     assert (
@@ -148,7 +148,7 @@ def test_pivot_taxonomic_data_multiindex():
     ), "The pivoted DataFrame should have one row for the test data"
 
     # assert one specific row
-    tax = "338190;sk_Archaea;k_;p_Thaumarchaeota;c_;o_Nitrosopumilales;f_Nitrosopumilaceae;g_;s_"
+    tax = "338190;sk__Archaea;k__;p__Thaumarchaeota;c__;o__Nitrosopumilales;f__Nitrosopumilaceae;g__;s__"
     index_vals = pivot.index.get_level_values("taxonomic_concat")
     assert (
         tax in index_vals

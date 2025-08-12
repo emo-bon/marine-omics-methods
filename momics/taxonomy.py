@@ -58,21 +58,21 @@ def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
     # Select relevant columns
     df1["taxonomic_concat"] = (
         df1["ncbi_tax_id"].astype(str)
-        + ";sk_"
+        + ";sk__"
         + df1["superkingdom"].fillna("")
-        + ";k_"
+        + ";k__"
         + df1["kingdom"].fillna("")
-        + ";p_"
+        + ";p__"
         + df1["phylum"].fillna("")
-        + ";c_"
+        + ";c__"
         + df1["class"].fillna("")
-        + ";o_"
+        + ";o__"
         + df1["order"].fillna("")
-        + ";f_"
+        + ";f__"
         + df1["family"].fillna("")
-        + ";g_"
+        + ";g__"
         + df1["genus"].fillna("")
-        + ";s_"
+        + ";s__"
         + df1["species"].fillna("")
     )
 
@@ -703,3 +703,28 @@ def fdr_pvals(p_spearman_df: pd.DataFrame, pval_cutoff: float) -> pd.DataFrame:
         np.nan
     )  # Optional: keep only upper triangle
     return pvals_fdr
+
+
+def clean_tax_row(row: str) -> str:
+    """
+    Cleans the taxonomic rows for both EMO0-BON and MGnify formats of taxonomic concats.
+
+    Args:
+        row (str): The input taxonomic row for a taxonomy DF as a string.
+
+    Returns:
+        str: The cleaned taxonomic row.
+    """
+    split_row = row.split(';')
+
+    # this compensates for the different column indices between EMO-BON and MGnify
+    start_idx = 1 if split_row and split_row[0].isdigit() else 0
+
+    result = [split_row[start_idx]]  # first taxonomy level
+
+    # skip kingdom level
+    for tax in split_row[start_idx + 2:]:
+        if tax[-1] == '_':
+            break
+        result.append(tax)
+    return ';'.join(result)
