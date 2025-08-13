@@ -6,7 +6,23 @@ from momics.galaxy.bio_blend import RemGalaxy
 
 
 class Gecco:
+    """
+    A class to interact with the GECCO tool in the Galaxy platform for comparative genomics.
+
+    This class manages user authentication, history and dataset selection, file uploads,
+    and submission of jobs to the GECCO tool via the Galaxy API.
+
+    Args:
+        params (dict): Dictionary of Panel widgets and parameters required for interaction.
+    """
+
     def __init__(self, params):
+        """
+        Initialize the Gecco class with user parameters and Galaxy connection.
+
+        Args:
+            params (dict): Dictionary containing Panel widgets and configuration parameters.
+        """
         self.exp = RemGalaxy("GALAXY_EARTH_URL", "GALAXY_EARTH_KEY")
         self.logger = self.exp.logger
         self.gecco_tool_id = "gecco"
@@ -31,19 +47,28 @@ class Gecco:
         self.debug = False
 
     def handle_login(self, clicks):
+        """
+        Handles user login and retrieves relevant data.
+
+        Args:
+            clicks (int): Number of times the login button has been clicked.
+        """
         pn.state.notifications.info(f"User logged in: {self.exp.cfg.whoami()}")
         self.logger.info(f"You have clicked me {clicks} times")
         self.handle_get_histories(clicks)
-
-        # get the datasets right upon login
         self.handle_get_datasets(clicks)
 
     def handle_get_histories(self, clicks):
+        """
+        Retrieves the user's Galaxy histories and updates the selection widget.
+
+        Args:
+            clicks (int): Number of times the login button has been clicked.
+        """
         self.exp.get_histories()
 
         # clean histories dict for display, remove deleted histories and select fust relevant fields
         clean_histories = self.exp.clean_histories_for_display()
-
         self.select_history.options = clean_histories
         self.select_history.value = clean_histories[0]
         self.logger.info(f"{len(clean_histories)} histories found.")
@@ -53,7 +78,12 @@ class Gecco:
         self.handle_update_current_history_id(self.select_history.value)
 
     def handle_get_datasets(self, clicks):
-        # filtering seems too narrow or too broad, not sure what to do about it, but broad is better
+        """
+        Retrieves available datasets from Galaxy and updates the selection widget.
+
+        Args:
+            clicks (int): Number of times the login button has been clicked.
+        """
         datasets, *_ = self.exp.get_datasets_by_key(
             "extension", ["fasta", "gbk", "embl", "genbank", "gb"]
         )
@@ -74,30 +104,46 @@ class Gecco:
             self.logger.info(
                 f"Datasets selector value[1]: {self.select_dataset.value[1]}"
             )
-        # this is the id of the dataset
         self.handle_update_current_file_name(self.select_dataset.value)
-
         self.logger.info(f"{len(datasets)} datasets found.")
 
     def handle_update_current_file_name(self, value):
+        """
+        Updates the current file name and ID based on the selected dataset.
+
+        Args:
+            value (tuple): Tuple containing the file name and file ID.
+        """
         self.current_file_name.value = value[0]
         self.current_file_id.value = value[1]
 
     def handle_update_current_history_name(self, value):
+        """
+        Updates the current history name based on the selected history.
+
+        Args:
+            value (dict): Dictionary containing history information.
+        """
         self.current_history_name.value = value["name"]
 
     def handle_update_current_history_id(self, value):
+        """
+        Updates the current history ID based on the selected history.
+
+        Args:
+            value (dict): Dictionary containing history information.
+        """
         self.current_history_id.value = value["id"]
 
-    def handle_update_current_file_name(self, value):
-        self.current_file_name.value = value[0]
-        self.current_file_id.value = value[1]
-
     def handle_create_history(self, clicks):
-        # this supresses history creation upon startup
+        """
+        Creates a new history in Galaxy if requested by the user.
+
+        Args:
+            clicks (int): Number of times the create history button has been clicked.
+        """
         if clicks == 0:
             return
-
         if self.history_name.value != "":
             self.exp.set_history(hname=self.history_name.value)
         else:
@@ -107,6 +153,12 @@ class Gecco:
         self.handle_get_histories(clicks)
 
     def handle_upload_dataset(self, clicks):
+        """
+        Uploads a dataset to Galaxy if the user chooses to upload from local source.
+
+        Args:
+            clicks (int): Number of times the upload button has been clicked.
+        """
         if self.file_source_checkbox.value:
             pn.state.notifications.warning("You selected Galaxy source and not upload.")
         else:
@@ -123,7 +175,6 @@ class Gecco:
                 != "ok"
             ):
                 time.sleep(1)
-
             self.logger.info(f"Upload data: {upload_data}")
             uploaded_dataset_id = upload_data["outputs"][0]["id"]
             self.current_file_name.value = upload_data["outputs"][0]["name"]
@@ -132,15 +183,19 @@ class Gecco:
             self.logger.info(f"Dataset {uploaded_dataset_id} uploaded.")
 
     def handle_submit_gecco(self, clicks):
+        """
+        Submits a job to the GECCO tool in Galaxy with the selected parameters.
+
+        Args:
+            clicks (int): Number of times the submit button has been clicked.
+        """
         if clicks == 0:
             pn.state.notifications.warning("You need to log in first.")
             return
-
         if self.current_file_id.value == "":
             pn.state.notifications.warning("No dataset selected.")
             self.logger.warning("No dataset selected.")
             return
-
         if self.current_history_id.value == "":
             pn.state.notifications.warning("No history selected.")
             self.logger.warning("No history selected.")

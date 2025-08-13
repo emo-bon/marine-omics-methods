@@ -52,7 +52,7 @@ This module offers methods for calculating and analyzing biodiversity metrics fr
     :show-inheritance:
 
 Galaxy integration
-==================
+===================
 This module enables integration with the Galaxy platform for workflow automation and reproducibility. We keep it minimalistic, because we expect to use direct install of Galaxy once demos are deployed in the final VRE.
 
 .. automodule:: momics.galaxy
@@ -62,7 +62,7 @@ This module enables integration with the Galaxy platform for workflow automation
 Panel dashboard module
 ========================
 This module provides some of the utilities for building interactive dashboards using the Panel library. These are Specific
-for FAIR-EASE use case and more methods and widgets can be found directly in the demo workflow notebooks [here](https://github.com/emo-bon/momics-demos).
+for FAIR-EASE use case and more methods and widgets can be found directly in the demo workflow notebooks `here <https://github.com/emo-bon/momics-demos>`_.
 
 .. automodule:: momics.panel_utils
     :members:
@@ -85,7 +85,7 @@ This module provides tools for handling and analyzing taxonomic information in o
     :show-inheritance:
 
 Utilities of all sorts
-==================
+=========================
 This module contains miscellaneous utility functions used throughout the momics package.
 
 .. automodule:: momics.utils

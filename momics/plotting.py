@@ -1,28 +1,12 @@
 """
-This module contains functions for plotting alpha and beta diversity results.
 
-Functions:
-- hvplot_alpha_diversity: Creates a horizontal bar plot for alpha diversity using hvplot.
-- plot_pcoa_black: Plots a PCoA plot with optional coloring.
-- mpl_alpha_diversity: Plots the Shannon index grouped by a factor.
-- mpl_average_per_factor: Plots the average Shannon index grouped by a factor.
-- mpl_bgcs_violin: Creates a violin plot for BGC probabilities by type.
-- alpha_plot: Creates an alpha diversity plot.
-- av_alpha_plot: Creates an average alpha diversity plot.
-- beta_plot: Creates a beta diversity heatmap plot.
-- beta_plot_pc: Creates a beta diversity PCoA plot.
-- beta_plot_pc_granular: Creates a beta diversity PCoA plot for granular data.
-- mpl_plot_heatmap: Creates a heatmap plot for beta diversity.
-- fold_legend_labels_from_series: Folds a list of labels to a maximum length from a Series.
-- change_legend_labels: Changes the labels of a legend on a given matplotlib axis.
-- cut_xaxis_labels: Changes the x-tick labels by cutting them short.
-- get_sankey: Creates a Sankey diagram using Plotly.
+Constants
+---------
+- PLOT_FACE_COLOR : str
+    The face color for the plot.
 
-Constants:
-- PLOT_FACE_COLOR: The face color for the plot.
-
-TODO: returns should be plt.figure and not pn.pane.Matplotlib, as already
-implemented for beta_plot_pc() function.
+TODO:
+- Returns should be plt.figure and not pn.pane.Matplotlib, as already implemented for beta_plot_pc() function.
 """
 
 import logging

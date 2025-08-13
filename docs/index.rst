@@ -4,12 +4,12 @@ Marine omics methods
 
 These package currently supports FAIR-EASE `pilot demos <https://github.com/emo-bon/momics-demos>`_, but eventually it can serve for general purpose manipulation of metagenomic data, locally and in VREs.
 
-The idea is to provide testable methods to allow as much flexibility and remixing of the functionalities provided
+The idea is to provide testable methods to allow as much flexibility and remixing of the functionalities provided.
 
-European Marine Omics Biodiversity Observation Network
+EMO-BON
 ===========================================================
 
-Specifically, we aim primarily to manipulate EMO-BON marine genomics sampling data and metadata from ENA project `PRJEB51688 <https://www.ebi.ac.uk/ena/browser/view/PRJEB51688>`_. The interactive dashboards and jupyter notebooks built on top of this repository can be found `here <https://github.com/emo-bon/momics-demos/tree/main>`_.
+Specifically, we aim primarily to manipulate European Marine Omics Biodiversity Observation Network (EMO-BON) sampling data and metadata from ENA project `PRJEB51688 <https://www.ebi.ac.uk/ena/browser/view/PRJEB51688>`_. The interactive dashboards and jupyter notebooks built on top of this repository can be found `here <https://github.com/emo-bon/momics-demos/tree/main>`_.
 
 The methods are mixture of statistical methods, plotting functionalities, metadata and data handling utilities and generators of `holoviz panel` widgets and panes. Experimental integration to `Galaxy` uses a wrapper around `bioblend <https://bioblend.readthedocs.io/en/latest/>`_.
 

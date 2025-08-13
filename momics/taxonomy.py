@@ -90,17 +90,20 @@ def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
 
 def normalize_abundance(
     df: pd.DataFrame, method: str = "tss_sqrt", rarefy_depth: int = None
-):
+) -> pd.DataFrame:
     """
     Normalize the abundance DataFrame using specified method.
+
     Args:
         df (pd.DataFrame): The input DataFrame containing taxonomic information.
         method (str): Normalization method. Options: 'tss', 'tss_sqrt', 'rarefy'.
             Defaults to 'tss_sqrt'.
         rarefy_depth (int, optional): Depth for rarefaction. If None, uses min sample sum.
             Defaults to None.
+    
     Returns:
         pd.DataFrame: A DataFrame with normalized abundance values.
+    
     Raises:
         IndexError: If the DataFrame does not have a multiindex with 'taxonomic_concat' and 'ncbi_tax_id'.
         TypeError: If the DataFrame does not contain numeric values for normalization.

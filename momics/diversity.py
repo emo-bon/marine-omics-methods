@@ -232,12 +232,16 @@ def beta_diversity_parametrized(
 # helper functions #
 ####################
 def update_subset_indicator(indicator, df):
-    """Update the subset indicator with the number of unique `index`_ids."""
+    """
+    Update the subset indicator with the number of unique `index` ids.
+    """
     indicator.value = df.index.nunique()
 
 
 def update_taxa_count_indicator(indicator, df):
-    """Update the taxa count indicator with the number of unique taxa."""
+    """
+    Update the taxa count indicator with the number of unique taxa.
+    """
     indicator.value = df.index.nunique()
 
 
