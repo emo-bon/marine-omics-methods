@@ -42,3 +42,7 @@ autodoc_default_options = {
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+
+# Add your custom CSS file
+def setup(app):
+    app.add_css_file('custom.css')
