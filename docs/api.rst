@@ -43,6 +43,14 @@ Implementation of `networkx` functions for complex networks analysis, specifical
     :members:
     :show-inheritance:
 
+Constants
+==================
+This submodule defines various constants used throughout the momics package.
+
+.. automodule:: momics.constants
+    :members:
+    :show-inheritance:
+
 Diversity module
 ==================
 This module offers methods for calculating and analyzing biodiversity metrics from omics data.
@@ -56,6 +64,14 @@ Galaxy integration
 This module enables integration with the Galaxy platform for workflow automation and reproducibility. We keep it minimalistic, because we expect to use direct install of Galaxy once demos are deployed in the final VRE.
 
 .. automodule:: momics.galaxy
+    :members:
+    :show-inheritance:
+
+Metadata module
+==================
+This module provides tools for handling and analyzing metadata in omics datasets.
+
+.. automodule:: momics.metadata
     :members:
     :show-inheritance:
 
@@ -73,6 +89,14 @@ Plotting module
 This module contains functions for visualizing omics data using various plotting libraries, such as `mpl`, `seaborn`, and `hvplot`.
 
 .. automodule:: momics.plotting
+    :members:
+    :show-inheritance:
+
+Statistical module
+==================
+This module provides functions for performing statistical analyses on omics data.
+
+.. automodule:: momics.stats
     :members:
     :show-inheritance:
 

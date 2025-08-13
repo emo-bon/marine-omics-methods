@@ -15,9 +15,9 @@ logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
 
-"""
-Some functions were originally developed by Andrzej Tkacz at CCMAR-Algarve.
-"""
+# """
+# Some functions were originally developed by Andrzej Tkacz at CCMAR-Algarve.
+# """
 
 
 def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -26,9 +26,10 @@ def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:
     pivoting.
 
     Normalization of the pivot is optional. Methods include:
-    - None: no normalization.
-    - 'tss_sqrt': Total Sum Scaling and Square Root Transformation.
-    - 'rarefy': rarefaction to a specified depth, if None, min of sample sums is used.
+
+    - **None**: no normalization.
+    - **tss_sqrt**: Total Sum Scaling and Square Root Transformation.
+    - **rarefy**: rarefaction to a specified depth, if None, min of sample sums is used.
 
     TODO: refactor scaling to a new method and offer different options.
 
