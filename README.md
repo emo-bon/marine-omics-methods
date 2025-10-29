@@ -12,7 +12,7 @@ Package of utilities for FAIR-Ease demo workflows.
 
 These methods are currently use only for FAIR-EASE [pilot demos](https://github.com/palec87/momics-demos), but eventually they can serve for general purpose manipulation of metagenomic data, locally and in VREs.
 
-The idea is to provide testable methods to allow as much flexibility and remixing of the functionalities provided
+The idea is to provide testable methods to allow as much flexibility and remixing of the functionalities provided.
 
 ## Installation
 

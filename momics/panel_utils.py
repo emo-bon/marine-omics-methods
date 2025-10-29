@@ -64,6 +64,63 @@ def is_port_in_use(port: int) -> bool:
         return s.connect_ex(("localhost", port)) == 0
 
 
+def tax_finder_selector() -> Tuple[
+    pn.widgets.Select,
+    pn.widgets.Select,
+    pn.widgets.TextInput,
+    pn.widgets.Checkbox,
+    pn.widgets.Checkbox,
+]:
+    select_table_tax = pn.widgets.Select(
+        name="Taxonomic table",
+        value="ssu",
+        options=["ssu", "lsu"],
+        description="Select a table for taxonomic search",
+    )
+
+    tax_level = pn.widgets.Select(
+        name="Taxonomic level",
+        value="all",
+        options=[
+            "all",
+            "ncbi_tax_id",
+            "superkingdom",
+            "kingdom",
+            "phylum",
+            "class",
+            "order",
+            "family",
+            "genus",
+            "species",
+        ],
+        description="Select a taxonomic search level",
+    )
+
+    search_term = pn.widgets.TextInput(
+        name="Search term",
+        value="",
+        description="Enter a search term (string or NCBI tax ID)",
+    )
+
+    checkbox_exact_match = pn.widgets.Checkbox(
+        name="Exact match of the search term",
+        value=False,
+    )
+
+    log_scale_checkbox = pn.widgets.Checkbox(
+        name="Log scale for abundance coloring",
+        value=True,
+    )
+
+    return (
+        select_table_tax,
+        tax_level,
+        search_term,
+        checkbox_exact_match,
+        log_scale_checkbox,
+    )
+
+
 def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> Tuple[
     pn.widgets.Select,
     pn.widgets.Select,

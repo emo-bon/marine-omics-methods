@@ -15,9 +15,9 @@ logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
 
-# """
-# Some functions were originally developed by Andrzej Tkacz at CCMAR-Algarve.
-# """
+"""
+Some functions were originally developed by Andrzej Tkacz at CCMAR-Algarve.
+"""
 
 
 def pivot_taxonomic_data(df: pd.DataFrame) -> pd.DataFrame:

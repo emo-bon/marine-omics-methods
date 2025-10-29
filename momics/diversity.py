@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 import numpy as np
-from typing import List, Dict
+from typing import Union, List, Dict
 
 import skbio
 from skbio.diversity import beta_diversity
@@ -11,7 +11,7 @@ from sklearn.metrics import pairwise_distances
 from .utils import (
     check_index_names,
 )
-
+from momics.constants import TAXONOMY_RANKS
 
 # logger setup
 FORMAT = "%(levelname)s | %(name)s | %(message)s"
@@ -131,9 +131,65 @@ def calculate_shannon_index(df: pd.DataFrame) -> pd.Series:
     return df.apply(shannon_index, axis=1)
 
 
+####################
+# Search functions #
+####################
+def find_taxa_in_table(
+        table: pd.DataFrame,
+        tax_level: str,
+        search_term: Union[str, int],
+        ncbi_tax_id: bool=False,
+        exact_match:bool=False,
+    ) -> pd.DataFrame:
+    """
+    Find taxa in the given table at the specified taxonomic level matching the search term.
+
+    args:
+        table (pd.DataFrame): DataFrame containing taxonomic data.
+        tax_level (str): Taxonomic level to search ('all' for all levels).
+        search_term (str|int): Term to search for.
+        ncbi_tax_id (bool): If True, search by NCBI taxonomic ID.
+        exact_match (bool): If True, perform exact match; otherwise, use substring match.
+
+    returns:
+        pd.DataFrame: DataFrame containing matching taxa.
+    """
+    # ncbi_tax_id search
+    index_names = getattr(table.index, "names", [])
+    if ncbi_tax_id and ('ncbi_tax_id' not in table.columns and 'ncbi_tax_id' not in index_names):
+        raise ValueError("The table does not contain 'ncbi_tax_id' column or index level.")
+
+    # if ncbi_tax_id is an index level, bring it into a column for uniform handling
+    if ncbi_tax_id and ('ncbi_tax_id' in index_names):
+        table = table.reset_index()
+
+    if ncbi_tax_id:
+        # Search by NCBI taxonomic ID
+        matching_taxa = table[table['ncbi_tax_id'].astype(str) == str(search_term)]
+        return matching_taxa.set_index(index_names) if index_names else matching_taxa
+
+    # search by taxonomic level, all ranks
+    if tax_level == 'all':
+        found = []
+        for tax_level in TAXONOMY_RANKS:
+            if exact_match:
+                found.append(table[table[tax_level].str.lower().fillna('') == search_term.lower()])
+            else:
+                found.append(table[table[tax_level].str.contains(search_term, case=False, na=False)])
+        matching_taxa = pd.concat(found)
+    # specific taxonomic level
+    else:
+        if exact_match:
+            matching_taxa = table[table[tax_level].str.lower().fillna('') == search_term.lower()]
+        else:
+            matching_taxa = table[table[tax_level].str.contains(search_term, case=False, na=False)]
+
+    return matching_taxa
+
 #######################
 # diversity functions #
 #######################
+
 def calculate_alpha_diversity(df: pd.DataFrame, factors: pd.DataFrame) -> pd.DataFrame:
     """
     Calculates the alpha diversity (Shannon index) for a DataFrame.

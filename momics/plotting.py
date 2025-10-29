@@ -24,7 +24,7 @@ import holoviews as hv
 import hvplot.pandas  # noqa
 
 from skbio.diversity import beta_diversity
-from bokeh.models import CategoricalColorMapper, ContinuousColorMapper
+from bokeh.models import CategoricalColorMapper, ContinuousColorMapper, LogColorMapper
 from bokeh.palettes import Category20, viridis
 
 from skbio.stats.ordination import pcoa
@@ -176,6 +176,7 @@ def hvplot_plot_pcoa_black(
     pcoa_df: pd.DataFrame,
     color_by: str = None,
     explained_variance: Tuple[float, float] = None,
+    **kwargs,
 ) -> hv.element.Scatter:
     """
     Plots a PCoA plot with optional coloring using hvplot.
@@ -187,60 +188,113 @@ def hvplot_plot_pcoa_black(
     Returns:
         hv.element.Scatter: The PCoA plot.
     """
-    valid_perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
-
-    if 2 < len(pcoa_df[color_by].unique()) <= 20:
-        if pcoa_df[color_by].dtype == "object":
-            pal = Category20[
-                len(pcoa_df[color_by].unique())
-            ]  # Use the correct number of colors
-            color_mapper = CategoricalColorMapper(
-                factors=pcoa_df[color_by]
-                .unique()
-                .tolist(),  # Unique categories in the factor column
-                palette=pal,
-            )
-        else:
-            color_mapper = ContinuousColorMapper(
-                palette="Turbo256",
-                low=pcoa_df[color_by].min(),
-                high=pcoa_df[color_by].max(),
-            )
-    else:
-        if pcoa_df[color_by].dtype == "object":
-            pal = viridis(len(pcoa_df[color_by].unique()))
-            color_mapper = CategoricalColorMapper(
-                factors=pcoa_df[color_by]
-                .unique()
-                .tolist(),  # Unique categories in the factor column
-                palette=pal,
-            )
-        else:
-            color_mapper = ContinuousColorMapper(
-                palette="Turbo256",
-                low=pcoa_df[color_by].min(),
-                high=pcoa_df[color_by].max(),
-            )
-
+    log_scale = kwargs.get('log_scale', False)
+    palette = kwargs.get('palette', "Turbo256")
     index_name = pcoa_df.index.name if pcoa_df.index.name else "sample"
     pcoa_df = pcoa_df.reset_index()  # Ensure index is a column for hvplot
 
-    if pcoa_df[color_by].count() >= 0:
-        # Create the scatter plot using hvplot
+    if color_by is None:
+        # No coloring specified, use black
         fig = pcoa_df.hvplot.scatter(
             x="PC1",
             y="PC2",
-            color=color_by,  # Use the factor column for coloring
+            color="black",
             hover_cols=[index_name, "PC1", "PC2"],
         )
-
+        valid_perc = 100.0
+        title = "PCoA (no coloring applied)"
+        color_palette = None
     else:
-        fig = pcoa_df.hvplot.scatter(
-            x="PC1",
-            y="PC2",
-            color="black",  # Use color_by or black for coloring
-            hover_cols=[index_name, "PC1", "PC2"],
-        )
+        valid_perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
+        # Handle logarithmic scaling for continuous data
+        if log_scale and pcoa_df[color_by].dtype != "object":
+            # Handle zeros and negative values for log scaling
+            color_data = pcoa_df[color_by].copy()
+            color_data = color_data.where(color_data > 0, 1e-2)
+
+            
+            # Update the DataFrame with processed data
+            pcoa_df[f'{color_by}_log'] = color_data
+            color_column = f'{color_by}_log'
+            
+            # Create logarithmic color mapper
+            if color_data.min() > 0:
+                color_mapper = LogColorMapper(
+                    palette=palette,
+                    low=color_data.min(),
+                    high=color_data.max(),
+                )
+            else:
+                # Fallback to linear if log scaling fails
+                log_scale = False
+                color_column = color_by
+                logger.info(f"Warning: Cannot use log scale due to non-positive values. Falling back to linear scale.")
+        else:
+            color_column = color_by
+        if not log_scale:  # Original logic for non-log scaling
+            if 2 < len(pcoa_df[color_by].unique()) <= 20:
+                if pcoa_df[color_by].dtype == "object":
+                    pal = Category20[
+                        len(pcoa_df[color_by].unique())
+                    ]  # Use the correct number of colors
+                    color_mapper = CategoricalColorMapper(
+                        factors=pcoa_df[color_by]
+                        .unique()
+                        .tolist(),  # Unique categories in the factor column
+                        palette=pal,
+                    )
+                else:
+                    color_mapper = ContinuousColorMapper(
+                        palette="Turbo256",
+                        low=pcoa_df[color_by].min(),
+                        high=pcoa_df[color_by].max(),
+                    )
+            else:
+                if pcoa_df[color_by].dtype == "object":
+                    pal = viridis(len(pcoa_df[color_by].unique()))
+                    color_mapper = CategoricalColorMapper(
+                        factors=pcoa_df[color_by]
+                        .unique()
+                        .tolist(),  # Unique categories in the factor column
+                        palette=pal,
+                    )
+                else:
+                    color_mapper = ContinuousColorMapper(
+                        palette="Turbo256",
+                        low=pcoa_df[color_by].min(),
+                        high=pcoa_df[color_by].max(),
+                    )
+
+        if pcoa_df[color_by].count() >= 0:
+            # Create the scatter plot using hvplot
+            hvplot_kwargs = {
+                "x": "PC1",
+                "y": "PC2",
+                "color": color_column if log_scale else color_by,
+                "hover_cols": [index_name, "PC1", "PC2"],
+            }
+            
+            # Add log-specific hvplot options
+            if log_scale and 'color_mapper' in locals():
+                hvplot_kwargs["logz"] = True
+                
+            fig = pcoa_df.hvplot.scatter(**hvplot_kwargs)
+        else:
+            fig = pcoa_df.hvplot.scatter(
+                x="PC1",
+                y="PC2",
+                color="black",  # Use black for coloring
+                hover_cols=[index_name, "PC1", "PC2"],
+            )
+        
+        # Update title to indicate log scale
+        scale_info = " (log scale)" if log_scale else ""
+        title = f"PCoA colored by {color_by}{scale_info}, valid values: ({valid_perc:.2f}%)"
+
+        if 'color_mapper' in locals():
+            color_palette = color_mapper.palette
+        else:
+            color_palette = None
 
     if explained_variance:
         var_perc = explained_variance[0] * 100, explained_variance[1] * 100
@@ -253,19 +307,123 @@ def hvplot_plot_pcoa_black(
             xlabel="PC1",
             ylabel="PC2",
         )
+    
     assert "PC1" in pcoa_df.columns, f"Missing 'PC1' column in PCoA DataFrame"
     assert "PC2" in pcoa_df.columns, f"Missing 'PC2' column in PCoA DataFrame"
 
-    fig = fig.opts(
-        cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
-        title=f"PCoA colored by {color_by}, valid values: ({valid_perc:.2f}%)",
-        size=MARKER_SIZE,
-        fill_alpha=0.5,
-        # legend_position="top_right",  # Adjust legend position
-        show_legend=False,
-        backend_opts={"plot.toolbar.autohide": True},
-    )
+    opts = {
+        "title": title,
+        "size": MARKER_SIZE,
+        "fill_alpha": 0.5,
+        "show_legend": False,
+        "backend_opts": {"plot.toolbar.autohide": True},
+    }
+    
+    # Add log-specific options
+    if log_scale:
+        opts["logz"] = True
+    
+    if color_palette is not None:
+        opts["cmap"] = color_palette
+    
+    fig = fig.opts(**opts)
     return fig
+
+
+# def hvplot_plot_pcoa_black(
+#     pcoa_df: pd.DataFrame,
+#     color_by: str = None,
+#     explained_variance: Tuple[float, float] = None,
+# ) -> hv.element.Scatter:
+#     """
+#     Plots a PCoA plot with optional coloring using hvplot.
+
+#     Args:
+#         pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
+#         color_by (str, optional): The column name to color the points by. Defaults to None.
+
+#     Returns:
+#         hv.element.Scatter: The PCoA plot.
+#     """
+#     valid_perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
+
+#     if 2 < len(pcoa_df[color_by].unique()) <= 20:
+#         if pcoa_df[color_by].dtype == "object":
+#             pal = Category20[
+#                 len(pcoa_df[color_by].unique())
+#             ]  # Use the correct number of colors
+#             color_mapper = CategoricalColorMapper(
+#                 factors=pcoa_df[color_by]
+#                 .unique()
+#                 .tolist(),  # Unique categories in the factor column
+#                 palette=pal,
+#             )
+#         else:
+#             color_mapper = ContinuousColorMapper(
+#                 palette="Turbo256",
+#                 low=pcoa_df[color_by].min(),
+#                 high=pcoa_df[color_by].max(),
+#             )
+#     else:
+#         if pcoa_df[color_by].dtype == "object":
+#             pal = viridis(len(pcoa_df[color_by].unique()))
+#             color_mapper = CategoricalColorMapper(
+#                 factors=pcoa_df[color_by]
+#                 .unique()
+#                 .tolist(),  # Unique categories in the factor column
+#                 palette=pal,
+#             )
+#         else:
+#             color_mapper = ContinuousColorMapper(
+#                 palette="Turbo256",
+#                 low=pcoa_df[color_by].min(),
+#                 high=pcoa_df[color_by].max(),
+#             )
+
+#     index_name = pcoa_df.index.name if pcoa_df.index.name else "sample"
+#     pcoa_df = pcoa_df.reset_index()  # Ensure index is a column for hvplot
+
+#     if pcoa_df[color_by].count() >= 0:
+#         # Create the scatter plot using hvplot
+#         fig = pcoa_df.hvplot.scatter(
+#             x="PC1",
+#             y="PC2",
+#             color=color_by,  # Use the factor column for coloring
+#             hover_cols=[index_name, "PC1", "PC2"],
+#         )
+
+#     else:
+#         fig = pcoa_df.hvplot.scatter(
+#             x="PC1",
+#             y="PC2",
+#             color="black",  # Use color_by or black for coloring
+#             hover_cols=[index_name, "PC1", "PC2"],
+#         )
+
+#     if explained_variance:
+#         var_perc = explained_variance[0] * 100, explained_variance[1] * 100
+#         fig = fig.opts(
+#             xlabel=f"PC1 ({var_perc[0]:.2f}%)",
+#             ylabel=f"PC2 ({var_perc[1]:.2f}%)",
+#         )
+#     else:
+#         fig = fig.opts(
+#             xlabel="PC1",
+#             ylabel="PC2",
+#         )
+#     assert "PC1" in pcoa_df.columns, f"Missing 'PC1' column in PCoA DataFrame"
+#     assert "PC2" in pcoa_df.columns, f"Missing 'PC2' column in PCoA DataFrame"
+
+#     fig = fig.opts(
+#         cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
+#         title=f"PCoA colored by {color_by}, valid values: ({valid_perc:.2f}%)",
+#         size=MARKER_SIZE,
+#         fill_alpha=0.5,
+#         # legend_position="top_right",  # Adjust legend position
+#         show_legend=False,
+#         backend_opts={"plot.toolbar.autohide": True},
+#     )
+#     return fig
 
 
 ##############
