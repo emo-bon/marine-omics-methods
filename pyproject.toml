@@ -1,6 +1,6 @@
 [project]
 name = "marine-omics"
-version = "0.1.15"
+version = "0.1.16"
 license = { file = "LICENSE.txt" }
 description = "Utilities for metagoflow and marine omics demos"
 readme = "README.md"
