@@ -191,7 +191,7 @@ def hvplot_plot_pcoa_black(
     log_scale = kwargs.get('log_scale', False)
     palette = kwargs.get('palette', "Turbo256")
     index_name = pcoa_df.index.name if pcoa_df.index.name else "sample"
-    pcoa_df = pcoa_df.reset_index()  # Ensure index is a column for hvplot
+    pcoa_df = pcoa_df.reset_index(names=index_name)  # Ensure index is a column for hvplot
 
     if color_by is None:
         # No coloring specified, use black
@@ -328,102 +328,6 @@ def hvplot_plot_pcoa_black(
     
     fig = fig.opts(**opts)
     return fig
-
-
-# def hvplot_plot_pcoa_black(
-#     pcoa_df: pd.DataFrame,
-#     color_by: str = None,
-#     explained_variance: Tuple[float, float] = None,
-# ) -> hv.element.Scatter:
-#     """
-#     Plots a PCoA plot with optional coloring using hvplot.
-
-#     Args:
-#         pcoa_df (pd.DataFrame): A DataFrame containing PCoA results.
-#         color_by (str, optional): The column name to color the points by. Defaults to None.
-
-#     Returns:
-#         hv.element.Scatter: The PCoA plot.
-#     """
-#     valid_perc = pcoa_df[color_by].count() / len(pcoa_df[color_by]) * 100
-
-#     if 2 < len(pcoa_df[color_by].unique()) <= 20:
-#         if pcoa_df[color_by].dtype == "object":
-#             pal = Category20[
-#                 len(pcoa_df[color_by].unique())
-#             ]  # Use the correct number of colors
-#             color_mapper = CategoricalColorMapper(
-#                 factors=pcoa_df[color_by]
-#                 .unique()
-#                 .tolist(),  # Unique categories in the factor column
-#                 palette=pal,
-#             )
-#         else:
-#             color_mapper = ContinuousColorMapper(
-#                 palette="Turbo256",
-#                 low=pcoa_df[color_by].min(),
-#                 high=pcoa_df[color_by].max(),
-#             )
-#     else:
-#         if pcoa_df[color_by].dtype == "object":
-#             pal = viridis(len(pcoa_df[color_by].unique()))
-#             color_mapper = CategoricalColorMapper(
-#                 factors=pcoa_df[color_by]
-#                 .unique()
-#                 .tolist(),  # Unique categories in the factor column
-#                 palette=pal,
-#             )
-#         else:
-#             color_mapper = ContinuousColorMapper(
-#                 palette="Turbo256",
-#                 low=pcoa_df[color_by].min(),
-#                 high=pcoa_df[color_by].max(),
-#             )
-
-#     index_name = pcoa_df.index.name if pcoa_df.index.name else "sample"
-#     pcoa_df = pcoa_df.reset_index()  # Ensure index is a column for hvplot
-
-#     if pcoa_df[color_by].count() >= 0:
-#         # Create the scatter plot using hvplot
-#         fig = pcoa_df.hvplot.scatter(
-#             x="PC1",
-#             y="PC2",
-#             color=color_by,  # Use the factor column for coloring
-#             hover_cols=[index_name, "PC1", "PC2"],
-#         )
-
-#     else:
-#         fig = pcoa_df.hvplot.scatter(
-#             x="PC1",
-#             y="PC2",
-#             color="black",  # Use color_by or black for coloring
-#             hover_cols=[index_name, "PC1", "PC2"],
-#         )
-
-#     if explained_variance:
-#         var_perc = explained_variance[0] * 100, explained_variance[1] * 100
-#         fig = fig.opts(
-#             xlabel=f"PC1 ({var_perc[0]:.2f}%)",
-#             ylabel=f"PC2 ({var_perc[1]:.2f}%)",
-#         )
-#     else:
-#         fig = fig.opts(
-#             xlabel="PC1",
-#             ylabel="PC2",
-#         )
-#     assert "PC1" in pcoa_df.columns, f"Missing 'PC1' column in PCoA DataFrame"
-#     assert "PC2" in pcoa_df.columns, f"Missing 'PC2' column in PCoA DataFrame"
-
-#     fig = fig.opts(
-#         cmap=color_mapper.palette,  # if color_mapper else viridis(1),  # Apply the color mapper's palette
-#         title=f"PCoA colored by {color_by}, valid values: ({valid_perc:.2f}%)",
-#         size=MARKER_SIZE,
-#         fill_alpha=0.5,
-#         # legend_position="top_right",  # Adjust legend position
-#         show_legend=False,
-#         backend_opts={"plot.toolbar.autohide": True},
-#     )
-#     return fig
 
 
 ##############
