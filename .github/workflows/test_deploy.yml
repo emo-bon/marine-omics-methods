@@ -45,6 +45,7 @@ jobs:
           run: pytest -v --color=yes --cov=momics --cov-report=xml
         env:
           PLATFORM: ${{ matrix.platform }}
+          MPLBACKEND: Agg
 
       - name: Codecov
         uses: codecov/codecov-action@v5.4.2
