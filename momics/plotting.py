@@ -139,12 +139,15 @@ def hvplot_average_per_factor(alpha: pd.DataFrame, factor: str) -> hv.element.Ba
         hv.element.Bars: A horizontal bar plot of alpha diversity.
     """
     # Define the color mapper using Bokeh's CategoricalColorMapper
-    if len(alpha[factor].unique()) <= 20:
-        pal = Category20[
-            len(alpha[factor].unique())
-        ]  # Use the correct number of colors
+    n_categories = len(alpha[factor].unique())
+    if n_categories == 1:
+        pal = ['#1f77b4']  # Single color for one category
+    elif n_categories == 2:
+        pal = ['#1f77b4', '#ff7f0e']  # Two colors for two categories
+    elif n_categories <= 20:
+        pal = Category20[n_categories]  # Category20 supports 3-20 colors
     else:
-        pal = viridis(len(alpha[factor].unique()))
+        pal = viridis(n_categories)
 
     color_mapper = CategoricalColorMapper(
         factors=alpha[factor]
