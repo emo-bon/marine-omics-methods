@@ -73,8 +73,8 @@ def tax_finder_selector() -> Tuple[
 ]:
     select_table_tax = pn.widgets.Select(
         name="Taxonomic table",
-        value="ssu",
-        options=["ssu", "lsu"],
+        value="SSU",
+        options=["SSU", "LSU"],
         description="Select a table for taxonomic search",
     )
 
@@ -154,10 +154,9 @@ def diversity_select_widgets(cat_columns: List[str], num_columns: List[str]) -> 
     )
 
     select_table_beta = pn.widgets.Select(
-        name="Source table beta",
-        value="ssu",
-        options=["ssu", "lsu"],
-        description="Select a table for beta diversity analysis",
+        name="Select table for beta diversity",
+        value="SSU",
+        options=["SSU", "LSU"],
     )
 
     boptions = [
